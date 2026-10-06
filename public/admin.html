@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Fotolijst beheren</title>
+<link rel="icon" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1c2127; --card: #252c33; --line: #37414b; --ink: #f1f0ec; --muted: #9aa5ae;
+    --accent: #f0a846; --ok: #7cc389; --bad: #ef7b6b;
+    --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 120px; }
+  h1 { font-family: var(--display); font-size: 30px; margin: 0 0 4px; }
+  h2 { font-family: var(--display); font-size: 20px; margin: 0 0 14px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin-bottom: 18px; }
+  .row { display: grid; grid-template-columns: 200px 1fr; gap: 6px 18px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; padding-top: 0; }
+  .row > label { padding-top: 8px; font-weight: 500; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .src { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .src button { font-size: 12px; padding: 0; background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+  .err { color: var(--bad); font-size: 13px; margin-top: 4px; }
+  input, select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type=checkbox] { width: 20px; height: 20px; margin-top: 8px; accent-color: var(--accent); }
+  input[type=color] { width: 44px; height: 38px; padding: 3px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 8px 14px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #1c2127; font-weight: 600; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+  .checks label { display: flex; gap: 8px; align-items: center; }
+  .checks input[type=checkbox] { margin: 6px 0; }
+  .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+  .cal { display: grid; grid-template-columns: 44px 150px 1fr auto; gap: 8px; margin-bottom: 8px; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgb(28 33 39 / .95); border-top: 1px solid var(--line); padding: 12px 20px; }
+  .bar div { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .bar .msg { flex: 1; color: var(--muted); }
+  .msg.good { color: var(--ok); } .msg.bad { color: var(--bad); }
+  .test { margin: 0; padding-left: 20px; } .test li { margin: 4px 0; }
+  .login { max-width: 360px; margin: 18vh auto 0; }
+  .top { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+  @media (max-width: 620px) {
+    .row { grid-template-columns: 1fr; } .row > label { padding-top: 0; }
+    .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+  .checks label { display: flex; gap: 8px; align-items: center; }
+  .checks input[type=checkbox] { margin: 6px 0; }
+  .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+  .cal { grid-template-columns: 44px 1fr auto; } .cal .url { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<main id="login" class="login" hidden>
+  <h1>Fotolijst</h1>
+  <p class="sub">Log in om de instellingen te wijzigen.</p>
+  <section>
+    <form id="loginForm">
+      <label for="pw">Wachtwoord</label>
+      <input id="pw" type="password" autocomplete="current-password" required style="margin:8px 0 14px">
+      <button class="primary" type="submit">Inloggen</button>
+      <p class="err" id="loginErr"></p>
+    </form>
+  </section>
+</main>
+
+<main id="app" hidden>
+  <div class="top">
+    <div><h1>Fotolijst beheren</h1><p class="sub">Wijzigingen zijn direct actief; het scherm laadt binnen een minuut opnieuw.</p></div>
+    <button id="logout" type="button">Uitloggen</button>
+  </div>
+
+  <section>
+    <h2>Foto's</h2>
+    <div class="row"><label for="immichUrl">Immich-adres</label><div><input id="immichUrl" placeholder="http://192.168.1.10:2283"></div></div>
+    <div class="row"><label for="immichKey">API-sleutel</label><div><input id="immichKey" type="password" autocomplete="off"><div class="hint" id="keyHint"></div></div></div>
+    <div class="row"><label for="albumIds">Album-ID's</label><div><input id="albumIds" placeholder="leeg = hele bibliotheek"><div class="hint">Komma gescheiden. Het ID staat in de album-URL in Immich.</div></div></div>
+    <div class="row"><label for="favoritesOnly">Alleen favorieten</label><div><input id="favoritesOnly" type="checkbox"></div></div>
+    <div class="row"><label for="imageSize">Beeldkwaliteit</label><div><select id="imageSize"><option value="preview">Preview (snel)</option><option value="fullsize">Volledig (scherper op 4K)</option></select></div></div>
+    <div class="row"><label for="photoInterval">Seconden per foto</label><div><input id="photoInterval" type="number" min="5" max="3600"></div></div>
+    <div class="row"><label for="progressBar">Voortgangsbalk</label><div><input id="progressBar" type="checkbox"><div class="hint">Dunne balk onder de foto die laat zien wanneer de volgende komt.</div></div></div>
+    <div class="row"><label for="placeNamesOsm">Plaatsnamen vertalen</label><div><input id="placeNamesOsm" type="checkbox"><div class="hint">Haalt plaatsnamen in de gekozen taal op bij OpenStreetMap, op basis van de GPS-positie van de foto. Uit: alleen het land wordt vertaald.</div></div></div>
+    <div class="row"><label>Info bij de foto</label><div id="captionFields" class="checks">
+      <label><input type="checkbox" value="date"> Datum</label>
+      <label><input type="checkbox" value="time"> Tijd</label>
+      <label><input type="checkbox" value="ago"> Hoe lang geleden</label>
+      <label><input type="checkbox" value="place"> Plaats</label>
+      <label><input type="checkbox" value="album"> Album <span class="hint">(API-sleutel met album.read)</span></label>
+      <label><input type="checkbox" value="people"> Personen <span class="hint">(API-sleutel met person.read)</span></label>
+      <label><input type="checkbox" value="camera"> Camera</label>
+    </div></div>
+  </section>
+
+  <section>
+    <h2>Agenda</h2>
+    <div id="calendars"></div>
+    <button type="button" id="addCal">Agenda toevoegen</button>
+    <div class="err" data-err="calendars"></div>
+    <div class="src" data-src="calendars"></div>
+    <div class="row" style="margin-top:14px"><label for="calendarDays">Dagen vooruit</label><div><input id="calendarDays" type="number" min="1" max="60"></div></div>
+    <div class="row"><label for="calendarRefresh">Verversen (minuten)</label><div><input id="calendarRefresh" type="number" min="1" max="1440"></div></div>
+  </section>
+
+  <section>
+    <h2>Afval (Twente Milieu)</h2>
+    <div class="row"><label>Adres</label><div>
+      <div class="pair3"><input id="wastePostcode" placeholder="Postcode" aria-label="Postcode" autocomplete="off"><input id="wasteHouseNumber" inputmode="numeric" placeholder="Huisnr." aria-label="Huisnummer"><input id="wasteHouseLetter" placeholder="Toev." aria-label="Toevoeging"></div>
+      <div class="hint">Leeg laten om de afvalmelding uit te zetten.</div></div></div>
+    <div class="row"><label for="wasteShowNext">Naast het weer tonen</label><div><input id="wasteShowNext" type="checkbox"><div class="hint">De eerstvolgende ophaling rechts naast de huidige temperatuur.</div></div></div>
+    <div class="row"><label for="wasteBannerFrom">Opvallend vanaf</label><div><input id="wasteBannerFrom" type="time"><div class="hint">De eerstvolgende ophaling staat er altijd. De avond ervoor wordt hij vanaf deze tijd opvallend gekleurd, op de ophaaldag zelf tot 12:00.</div></div></div>
+    <div class="row"><label for="wasteInAgenda">Toevoegen aan agenda</label><div><input id="wasteInAgenda" type="checkbox"></div></div>
+  </section>
+
+  <section>
+    <h2>Weer</h2>
+    <div class="row"><label>Locatie</label><div>
+      <div class="pair"><input id="lat" inputmode="decimal" placeholder="Breedtegraad" aria-label="Breedtegraad"><input id="lon" inputmode="decimal" placeholder="Lengtegraad" aria-label="Lengtegraad"></div>
+      <div class="err" data-err="lon"></div><div class="src" data-src="lon"></div>
+      <div class="hint">Tip: klik met rechts op een plek in Google Maps om de coördinaten te kopiëren.</div></div></div>
+  </section>
+
+  <section>
+    <h2>Nachtstand</h2>
+    <div class="row"><label>Van – tot</label><div>
+      <div class="pair"><input id="nightStart" type="time" aria-label="Begintijd"><input id="nightEnd" type="time" aria-label="Eindtijd"></div>
+      <div class="err" data-err="nightEnd"></div><div class="src" data-src="nightEnd"></div>
+      <div class="hint">Leeg laten om de nachtstand uit te zetten.</div></div></div>
+    <div class="row"><label for="nightMode">Weergave</label><div><select id="nightMode"><option value="black">Zwart scherm</option><option value="clock">Gedimde klok</option></select></div></div>
+    <div class="row"><label for="wakeMinutes">Wekken bij tik (min.)</label><div><input id="wakeMinutes" type="number" min="1" max="120"></div></div>
+  </section>
+
+  <section>
+    <h2>Weergave</h2>
+    <div class="row"><label for="locale">Taal en datumnotatie</label><div><select id="locale"><option value="nl-NL">Nederlands</option><option value="nl-BE">Nederlands (België)</option><option value="en-GB">English (UK)</option><option value="en-US">English (US)</option><option value="de-DE">Deutsch</option></select></div></div>
+  </section>
+
+  <section>
+    <h2>Verbinding testen</h2>
+    <p class="hint" style="margin-top:0">Test de opgeslagen instellingen: Immich, het weer en elke agenda.</p>
+    <button type="button" id="testBtn">Testen</button>
+    <ul class="test" id="testOut"></ul>
+  </section>
+</main>
+
+<div class="bar" id="bar" hidden><div>
+  <span class="msg" id="msg" role="status"></span>
+  <button type="button" id="revert">Ongedaan maken</button>
+  <button type="button" class="primary" id="save">Opslaan</button>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SIMPLE = ['immichUrl', 'immichKey', 'albumIds', 'favoritesOnly', 'imageSize', 'photoInterval', 'progressBar', 'placeNamesOsm', 'calendarDays', 'calendarRefresh',
+                'wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter', 'wasteShowNext', 'wasteBannerFrom', 'wasteInAgenda', 'lat', 'lon', 'nightStart', 'nightEnd', 'nightMode', 'wakeMinutes', 'locale'];
+const SRC = { standaard: 'standaardwaarde', omgeving: 'uit de containerinstellingen', beheerpagina: 'ingesteld op deze pagina' };
+let state = null;
+
+async function api(path, body) {
+  const r = await fetch(`api/${path}`, body !== undefined ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && path !== 'login') { show('login'); throw new Error(j.error); }
+  if (!r.ok) throw Object.assign(new Error(j.error || `HTTP ${r.status}`), { data: j });
+  return j;
+}
+function show(which) { $('login').hidden = which !== 'login'; $('app').hidden = which !== 'app'; $('bar').hidden = which !== 'app'; }
+function msg(text, kind = '') { $('msg').textContent = text; $('msg').className = `msg ${kind}`; }
+
+/* ---- calendars editor ---- */
+function calRow(c = { name: '', color: '#f0a846', url: '' }) {
+  const d = document.createElement('div');
+  d.className = 'cal';
+  d.innerHTML = `<input type="color" aria-label="Kleur" value="${esc(c.color || '#f0a846')}">
+    <input aria-label="Naam" placeholder="Naam" value="${esc(c.name)}">
+    <input class="url" aria-label="iCal-adres" placeholder="https:// of webcal://…" value="${esc(c.url)}">
+    <button type="button" aria-label="Verwijderen">Verwijderen</button>`;
+  d.querySelector('button').onclick = () => { d.remove(); dirty(); };
+  d.addEventListener('input', dirty);
+  $('calendars').append(d);
+}
+const readCals = () => [...$('calendars').children].map(d => {
+  const [color, name, url] = d.querySelectorAll('input');
+  return { color: color.value, name: name.value, url: url.value };
+});
+
+/* ---- form ---- */
+function fill(s) {
+  state = s;
+  for (const k of SIMPLE) {
+    const el = $(k), v = s.values[k];
+    if (el.type === 'checkbox') el.checked = !!v;
+    else el.value = Array.isArray(v) ? v.join(', ') : v ?? '';
+  }
+  $('keyHint').textContent = s.hasKey ? 'Er is een sleutel ingesteld. Laat leeg om hem te houden.' : 'Nog geen sleutel ingesteld.';
+  document.querySelectorAll('#captionFields input').forEach(c => (c.checked = s.values.captionFields.includes(c.value)));
+  $('calendars').innerHTML = '';
+  s.values.calendars.forEach(calRow);
+  document.querySelectorAll('.err').forEach(e => (e.textContent = ''));
+  // show where each value comes from, with a reset for values set on this page
+  document.querySelectorAll('.src').forEach(e => e.remove());
+  const keys = [...SIMPLE, 'calendars', 'captionFields'].filter(k => !['lat', 'nightStart', 'wasteHouseNumber', 'wasteHouseLetter'].includes(k));
+  for (const k of keys) {
+    const host = k === 'captionFields' ? $('captionFields').parentElement : k === 'calendars' ? $('addCal').parentElement : k === 'lon' || k === 'nightEnd' || k === 'wastePostcode' ? $(k).closest('.row > div') : $(k).parentElement;
+    const src = document.createElement('div');
+    src.className = 'src';
+    const pairKeys = k === 'wastePostcode' ? ['wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter'] : k === 'lon' ? ['lat', 'lon'] : k === 'nightEnd' ? ['nightStart', 'nightEnd'] : [k];
+    const fromPage = pairKeys.some(x => s.source[x] === 'beheerpagina');
+    src.innerHTML = `${SRC[s.source[k]] || ''}${fromPage ? ' · <button type="button">terugzetten</button>' : ''}`;
+    if (fromPage) src.querySelector('button').onclick = () => save(pairKeys);
+    if (k === 'calendars') $('addCal').after(src); else host.append(src);
+    if (!host.querySelector(`[data-err="${k}"]`)) { const e = document.createElement('div'); e.className = 'err'; e.dataset.err = k; host.append(e); }
+  }
+  msg('');
+}
+function collect() {
+  const out = {};
+  for (const k of SIMPLE) { const el = $(k); out[k] = el.type === 'checkbox' ? el.checked : el.value; }
+  out.calendars = readCals();
+  out.captionFields = [...document.querySelectorAll('#captionFields input:checked')].map(c => c.value);
+  return out;
+}
+function dirty() { msg('Niet opgeslagen wijzigingen'); }
+document.addEventListener('input', e => { if (e.target.closest('#app')) dirty(); });
+
+async function save(reset) {
+  document.querySelectorAll('.err').forEach(e => (e.textContent = ''));
+  try {
+    const body = reset ? { reset } : collect();
+    const r = await api('settings', body);
+    fill(r);
+    msg(reset ? 'Teruggezet' : 'Opgeslagen', 'good');
+  } catch (e) {
+    const errs = e.data?.errors;
+    if (errs) {
+      for (const [k, m] of Object.entries(errs)) {
+        const target = document.querySelector(`[data-err="${k === 'lat' ? 'lon' : k === 'nightStart' ? 'nightEnd' : k.startsWith('wasteHouse') ? 'wastePostcode' : k}"]`);
+        if (target) target.textContent = m;
+      }
+      msg('Controleer de gemarkeerde velden', 'bad');
+    } else msg(e.message, 'bad');
+  }
+}
+
+$('addCal').onclick = () => { calRow(); dirty(); };
+$('save').onclick = () => save();
+$('revert').onclick = () => fill(state);
+$('logout').onclick = async () => { await api('logout', {}).catch(() => {}); show('login'); };
+$('testBtn').onclick = async () => {
+  $('testOut').innerHTML = '<li>Bezig…</li>';
+  try {
+    const t = await api('test', {});
+    const li = (ok, text) => `<li style="color:var(--${ok ? 'ok' : 'bad'})">${ok ? '✓' : '✗'} ${text}</li>`;
+    let html = li(t.immich.ok, t.immich.ok ? 'Immich: foto gevonden' : `Immich: ${esc(t.immich.error)}`);
+    html += li(t.weather.ok, t.weather.ok ? `Weer: nu ${Math.round(t.weather.temp)}°` : `Weer: ${esc(t.weather.error)}`);
+    if (t.waste.ok && t.waste.enabled) {
+      const next = t.waste.next.map(p => `${esc(p.label)} ${new Date(p.date + 'T12:00').toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}`).join(', ');
+      html += li(true, `Twente Milieu: ${next || 'geen ophaaldagen gevonden'}`);
+    } else if (!t.waste.ok) html += li(false, esc(t.waste.error));
+    for (const s of t.calendar.sources || []) html += li(true, `${esc(s.name)}: ${s.eventsInFeed} afspraken in de feed, ${s.inWindow} in de komende dagen`);
+    for (const e of t.calendar.errors || []) html += li(false, esc(e));
+    $('testOut').innerHTML = html;
+  } catch (e) { $('testOut').innerHTML = `<li style="color:var(--bad)">✗ ${esc(e.message)}</li>`; }
+};
+
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  $('loginErr').textContent = '';
+  try { await api('login', { password: $('pw').value }); $('pw').value = ''; await start(); }
+  catch (err) { $('loginErr').textContent = err.message; }
+};
+
+async function start() {
+  try { fill(await api('settings')); show('app'); }
+  catch { show('login'); }
+}
+window.addEventListener('beforeunload', e => { if ($('msg').textContent === 'Niet opgeslagen wijzigingen') e.preventDefault(); });
+start();
+</script>
+</body>
+</html>

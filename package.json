@@ -1,0 +1,9 @@
+{
+  "name": "immich-wallframe",
+  "version": "0.1.0",
+  "description": "Photo frame for Immich with 5-day weather and a compact multi-day agenda",
+  "type": "module",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "node-ical": "^0.20.1" }
+}

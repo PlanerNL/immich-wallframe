@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fotolijst</title>
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tint: 60 70 80;                       /* replaced per photo */
+    --ink: #f4f3ef;
+    --muted: rgb(244 243 239 / .62);
+    --faint: rgb(244 243 239 / .16);
+    --panel: color-mix(in oklab, rgb(var(--tint)) 38%, #121417);
+    --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+    --u: min(1vh, 0.56vw);                  /* one scale unit that follows the screen */
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: #000; color: var(--ink); font-family: var(--body); overflow: hidden; }
+
+  .frame { display: grid; grid-template-columns: 1fr minmax(0, calc(var(--u) * 58)); height: 100%; }
+
+  /* ---- photo ---- */
+  .stage { position: relative; overflow: hidden; }
+  .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2.2s ease; }
+  .slide.on { opacity: 1; }
+  .slide .bg { position: absolute; inset: -8%; background-size: cover; background-position: center; filter: blur(40px) brightness(.55) saturate(1.2); }
+  .slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .stage::after { content: ''; position: absolute; left: 0; bottom: 0; width: 60%; height: 40%; pointer-events: none;
+                  background: radial-gradient(ellipse at 0 100%, rgb(0 0 0 / .55), transparent 70%); }
+  .caption { position: absolute; z-index: 1; left: calc(var(--u) * 3.5); bottom: calc(var(--u) * 3); max-width: 55%;
+             font-size: calc(var(--u) * 2.1); line-height: 1.45; color: var(--muted); text-shadow: 0 1px 6px rgb(0 0 0 / .7); }
+  .caption .when { color: var(--ink); font-weight: 600; font-size: 1.15em; }
+  .caption .ago { margin-left: .5em; }
+  .caption .line { display: flex; gap: .5em; align-items: center; }
+  .caption svg { width: 1.05em; height: 1.05em; flex: none; opacity: .8; }
+  .caption .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .progress { position: absolute; z-index: 2; left: 0; bottom: 0; height: calc(var(--u) * .45); width: 100%;
+              transform-origin: left; transform: scaleX(0);
+              background: rgb(var(--tint-light, 244 243 239) / .85); box-shadow: 0 0 8px rgb(0 0 0 / .4); }
+  .nav { position: absolute; z-index: 3; top: 50%; translate: 0 -50%; width: calc(var(--u) * 9); height: calc(var(--u) * 9);
+         border-radius: 50%; border: 0; background: rgb(0 0 0 / .35); color: var(--ink); cursor: pointer;
+         display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity .4s ease, background .2s; touch-action: manipulation; }
+  .nav svg { width: 46%; height: 46%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav.prev { left: calc(var(--u) * 2.5); } .nav.next { right: calc(var(--u) * 2.5); }
+  .stage.controls .nav { opacity: 1; pointer-events: auto; }
+  .nav:hover, .nav:active { background: rgb(0 0 0 / .55); }
+  .nav:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; opacity: 1; pointer-events: auto; }
+  .stage.controls .nav:disabled { opacity: .3; cursor: default; }
+  @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .notice { position: absolute; inset: 0; display: grid; place-items: center; padding: 10%; text-align: center; font-size: calc(var(--u) * 2.4); color: var(--muted); }
+
+  /* ---- panel ---- */
+  .panel {
+    background: var(--panel); transition: background 3s ease;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 3.2);
+    padding: calc(var(--u) * 4.5) calc(var(--u) * 4) calc(var(--u) * 3);
+    min-height: 0;
+  }
+  .clock { font-family: var(--display); font-weight: 300; font-size: calc(var(--u) * 13); line-height: .9; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .today { margin-top: calc(var(--u) * 1.2); font-size: calc(var(--u) * 2.6); color: var(--muted); }
+  .today::first-letter { text-transform: uppercase; }
+
+  /* weather */
+  .toprow { display: flex; align-items: center; gap: calc(var(--u) * 2); }
+  /* next waste pickup, styled like the current weather next to it */
+  .waste { --wc: #8e979f; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--u) * .6);
+           padding-left: calc(var(--u) * 2.2); border-left: 1px solid var(--faint); }
+  .waste .wtop { display: flex; align-items: center; gap: calc(var(--u) * 1); }
+  .waste .bins { display: flex; flex: none; }
+  .waste .bins svg { width: calc(var(--u) * 3.4); height: calc(var(--u) * 3.4); }
+  .waste .bins svg + svg { margin-left: calc(var(--u) * -.9); }
+  .waste .wlabel { font-size: calc(var(--u) * 1.9); color: var(--muted); line-height: 1.2; }
+  .waste .wnames { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.5); line-height: 1.15; }
+  .waste.urgent .wlabel { color: color-mix(in oklab, var(--wc) 55%, white); font-weight: 600; }
+  .now { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 2); }
+  .now svg { width: calc(var(--u) * 7); height: calc(var(--u) * 7); }
+  .now .t { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 6); line-height: 1; }
+  .now .d { font-size: calc(var(--u) * 1.9); color: var(--muted); line-height: 1.4; }
+  .days { display: grid; grid-template-columns: auto auto 1fr auto auto; column-gap: calc(var(--u) * 1.6); row-gap: calc(var(--u) * 1.1); align-items: center; margin-top: calc(var(--u) * 2.2); font-size: calc(var(--u) * 2.1); }
+  .days .n { font-weight: 600; min-width: 2.4em; }
+  .days svg { width: calc(var(--u) * 3.2); height: calc(var(--u) * 3.2); }
+  .range { display: grid; grid-template-columns: 2.2em 1fr 2.2em; align-items: center; gap: .5em; font-variant-numeric: tabular-nums; }
+  .range .lo { color: var(--muted); text-align: right; }
+  .track { position: relative; height: calc(var(--u) * .7); border-radius: 99px; background: var(--faint); }
+  .track i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+  /* chance of rain and amount each get their own right-aligned column */
+  .days .rain, .days .mm { color: #9cc9ee; font-size: .88em; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .days .rain { min-width: 2.6em; }
+  .days .mm { min-width: 3.6em; }
+  .days .dry { visibility: hidden; }
+
+  /* agenda */
+  .side { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 1.6); }
+  .agenda { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; touch-action: pan-y;
+            margin-top: calc(var(--u) * -0.8); padding-top: calc(var(--u) * 1.6); }
+  .weather { border-bottom: 1px solid var(--faint); padding-bottom: calc(var(--u) * 2.4); }
+  .agenda::-webkit-scrollbar { display: none; }
+  /* fade only the edges where there is more to scroll to */
+  .agenda.more-below { mask-image: linear-gradient(#000 85%, transparent); }
+  .agenda.more-above { mask-image: linear-gradient(transparent, #000 10%); }
+  .agenda.more-above.more-below { mask-image: linear-gradient(transparent, #000 10%, #000 85%, transparent); }
+  .day { display: grid; grid-template-columns: calc(var(--u) * 11) 1fr; gap: calc(var(--u) * 1.5); padding-bottom: calc(var(--u) * 1.6); }
+  .day h3 { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.1); line-height: 1.35; }
+  .day h3 small { display: block; font-family: var(--body); font-weight: 400; color: var(--muted); font-size: .85em; }
+  .day.is-today h3 { color: rgb(var(--tint-light, 255 214 150)); }
+  .ev { display: grid; grid-template-columns: calc(var(--u) * .9) 3.1em 1fr; gap: calc(var(--u) * 1); align-items: baseline; font-size: calc(var(--u) * 2.1); line-height: 1.35; }
+  .ev .dot { width: calc(var(--u) * .9); height: calc(var(--u) * .9); border-radius: 50%; background: var(--c, var(--muted)); transform: translateY(-.1em); }
+  /* waste: the bin sits centred on the dot column, the name lines up with the other titles */
+  .ev .bin { position: relative; width: calc(var(--u) * .9); height: calc(var(--u) * .9); transform: translateY(-.1em); }
+  .ev .bin svg { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 2); height: calc(var(--u) * 2); translate: -50% -52%; }
+  .ev time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ev .ti { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ev.allday .ti { font-weight: 600; }
+  .empty { color: var(--muted); font-size: calc(var(--u) * 2.1); line-height: 1.35; }
+
+  /* portrait screens: photo on top, info below in two columns */
+  @media (orientation: portrait) {
+    :root { --u: min(0.62vh, 1vw); }
+    .frame { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .panel { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; height: 42vh; column-gap: calc(var(--u) * 5); }
+    .head { grid-column: 1; }
+    .weather { grid-column: 1; }
+    .side { grid-column: 2; grid-row: 1 / span 2; }
+    .agenda { margin-top: 0; padding-top: 0; }
+    .weather { border-bottom: 0; }
+  }
+  /* night mode */
+  .night { position: fixed; inset: 0; z-index: 10; background: #000; opacity: 0; pointer-events: none; transition: opacity 4s ease; }
+  .night.on { opacity: 1; pointer-events: auto; }
+  .night .nclock { position: absolute; font-family: var(--display); font-weight: 300; font-size: calc(var(--u) * 11);
+                   color: rgb(244 243 239 / .28); font-variant-numeric: tabular-nums; transform: translate(-50%, -50%); }
+  @media (prefers-reduced-motion: reduce) { .slide, .panel { transition: none; } }
+</style>
+</head>
+<body>
+<main class="frame">
+  <section class="stage" id="stage" aria-label="Foto">
+    <div class="slide"><div class="bg"></div><img alt=""></div>
+    <div class="slide"><div class="bg"></div><img alt=""></div>
+    <p class="caption" id="caption"></p>
+    <div class="progress" id="progress" hidden></div>
+    <button class="nav prev" id="prev" type="button" aria-label="Vorige foto" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="nav next" id="next" type="button" aria-label="Volgende foto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <p class="notice" id="notice" hidden></p>
+  </section>
+
+  <aside class="panel">
+    <header class="head">
+      <div class="clock" id="clock"></div>
+      <p class="today" id="today"></p>
+    </header>
+    <section class="weather">
+      <div class="toprow"><div class="now" id="weatherNow"></div><div class="waste" id="waste" hidden></div></div>
+      <div class="days" id="weatherDays"></div>
+    </section>
+    <div class="side">
+      <section class="agenda" id="agenda"></section>
+    </div>
+  </aside>
+</main>
+<div class="night" id="night"><div class="nclock" id="nclock" hidden></div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let cfg = { progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
+const T = {
+  nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m' },
+  en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until' },
+};
+const t = k => (T[cfg.locale.slice(0, 2)] || T.en)[k];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const getJSON = async u => { const r = await fetch(u); const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; };
+
+/* ---------- clock ---------- */
+function tick() {
+  const d = new Date();
+  $('clock').textContent = d.toLocaleTimeString(cfg.locale, { hour: '2-digit', minute: '2-digit' });
+  $('today').textContent = d.toLocaleDateString(cfg.locale, { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+/* ---------- night mode ---------- */
+let wakeUntil = 0;
+const mins = hhmm => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + (m || 0); };
+function isNight(d = new Date()) {
+  if (!cfg.nightStart || !cfg.nightEnd) return false;
+  if (Date.now() < wakeUntil) return false;
+  const n = d.getHours() * 60 + d.getMinutes(), a = mins(cfg.nightStart), b = mins(cfg.nightEnd);
+  return a < b ? n >= a && n < b : n >= a || n < b;     // handles ranges past midnight, like 23:00–07:00
+}
+let lastNight = null;
+function updateNight() {
+  const on = isNight(), el = $('night'), c = $('nclock');
+  // in the Android app: also turn the backlight down as far as it goes
+  if (on !== lastNight) { lastNight = on; try { window.WallframeApp?.setNight(on); } catch {} }
+  el.classList.toggle('on', on);
+  c.hidden = !(on && cfg.nightMode === 'clock');
+  if (!c.hidden) {
+    c.textContent = new Date().toLocaleTimeString(cfg.locale, { hour: '2-digit', minute: '2-digit' });
+    // drift the clock slowly around the screen to avoid burn-in
+    const m = new Date().getMinutes();
+    c.style.left = `${35 + 30 * ((m * 7) % 11) / 10}%`;
+    c.style.top = `${35 + 30 * ((m * 5) % 13) / 12}%`;
+  }
+}
+// a tap during the night wakes the frame for a few minutes
+document.addEventListener('pointerdown', () => {
+  if (isNight()) { wakeUntil = Date.now() + cfg.wakeMinutes * 60e3; updateNight(); nextPhoto(true); }
+});
+
+/* ---------- photo caption ---------- */
+const CAP_ICON = {
+  place: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  album: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 15l4.5-4 4 3.5 3-2.5 5 4"/>',
+  people: '<circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M15.5 14.2a4.6 4.6 0 0 1 5 4.8"/>',
+  camera: '<path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.3" r="3.3"/>',
+};
+const capIcon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CAP_ICON[k]}</svg>`;
+
+function ago(date) {
+  const rtf = new Intl.RelativeTimeFormat(cfg.locale, { numeric: 'auto' });
+  const days = Math.round((Date.now() - date) / 864e5);
+  if (days < 1) return rtf.format(0, 'day');
+  if (days < 45) return rtf.format(-days, 'day');
+  if (days < 365) return rtf.format(-Math.round(days / 30.4), 'month');
+  return rtf.format(-Math.round(days / 365.25), 'year');
+}
+
+function captionHTML(p) {
+  const show = new Set(p.show || ['date', 'place']);
+  const lines = [];
+  if (p.local && (show.has('date') || show.has('time') || show.has('ago'))) {
+    const d = new Date(p.local);                 // wall-clock time of the photo, read as UTC
+    const parts = [];
+    if (show.has('date')) parts.push(d.toLocaleDateString(cfg.locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }));
+    if (show.has('time')) parts.push(d.toLocaleTimeString(cfg.locale, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }));
+    let html = parts.length ? `<span class="when">${esc(parts.join(', '))}</span>` : '';
+    if (show.has('ago') && p.taken) html += `<span class="ago">${esc(ago(new Date(p.taken)))}</span>`;
+    if (html) lines.push(`<div>${html}</div>`);
+  }
+  const line = (k, text) => text && lines.push(`<div class="line">${capIcon(k)}<span class="txt">${esc(text)}</span></div>`);
+  if (show.has('place')) line('place', p.place);
+  if (show.has('album')) line('album', (p.albums || []).join(', '));
+  if (show.has('people')) line('people', (p.people || []).join(', '));
+  if (show.has('camera')) line('camera', p.camera);
+  return lines.join('');
+}
+
+/* ---------- photos ---------- */
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+const canvas = Object.assign(document.createElement('canvas'), { width: 24, height: 24 });
+
+function tintFrom(img) {
+  const c = canvas.getContext('2d', { willReadFrequently: true });
+  c.drawImage(img, 0, 0, 24, 24);
+  const px = c.getImageData(0, 0, 24, 24).data;
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    const max = Math.max(px[i], px[i + 1], px[i + 2]), min = Math.min(px[i], px[i + 1], px[i + 2]);
+    const w = 1 + (max - min) / 32;                 // favour colourful pixels over grey ones
+    r += px[i] * w; g += px[i + 1] * w; b += px[i + 2] * w; n += w;
+  }
+  r /= n; g /= n; b /= n;
+  const root = document.documentElement.style;
+  root.setProperty('--tint', `${r | 0} ${g | 0} ${b | 0}`);
+  const lift = v => Math.round(v + (255 - v) * 0.55);  // lighter version for accents
+  root.setProperty('--tint-light', `${lift(r)} ${lift(g)} ${lift(b)}`);
+}
+
+// The next photo is fetched a few seconds early and swapped in exactly when the progress bar is full.
+const PRELOAD_MS = 6000;
+let photoTimer = null, shownAt = 0;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function restartProgress() {
+  const bar = $('progress');
+  bar.hidden = !cfg.progressBar;
+  bar.style.animation = 'none';
+  void bar.offsetWidth;                                   // force reflow so the animation starts over
+  bar.style.animation = `progress ${cfg.photoInterval}s linear forwards`;
+}
+
+// Photos shown so far, so "previous" can go back. Auto-advance and "next" move forward through
+// this list first and only fetch a new random photo at the end of it.
+const history = [];
+let pos = -1, seq = 0;
+const MAX_HISTORY = 50;
+
+async function loadImg(p) {
+  const img = new Image();
+  img.src = `api/photo/${p.id}/image`;
+  await img.decode();
+  return img;
+}
+
+function display(p, img) {
+  const next = slides[cur ^ 1];
+  next.querySelector('img').src = img.src;
+  next.querySelector('.bg').style.backgroundImage = `url("${img.src}")`;
+  next.classList.add('on');
+  slides[cur].classList.remove('on');
+  cur ^= 1;
+  tintFrom(img);
+  $('caption').innerHTML = captionHTML(p);
+  $('notice').hidden = true;
+  shownAt = Date.now();
+  restartProgress();
+  $('prev').disabled = pos <= 0;
+  clearTimeout(photoTimer);
+  photoTimer = setTimeout(nextPhoto, Math.max(cfg.photoInterval * 1000 - PRELOAD_MS, 1000));
+}
+
+async function nextPhoto(now = false) {
+  clearTimeout(photoTimer);
+  const my = ++seq;                                       // a newer call (e.g. a button press) cancels this one
+  if (isNight()) { photoTimer = setTimeout(nextPhoto, 30e3); return; }   // nobody is looking
+  try {
+    let p;
+    if (pos < history.length - 1) p = history[pos + 1];
+    else {
+      p = await getJSON('api/photo/next');
+      if (my !== seq) return;
+      history.push(p);
+      if (history.length > MAX_HISTORY) { history.shift(); pos--; }
+    }
+    const img = await loadImg(p);
+    if (my !== seq) return;
+    const wait = now || !shownAt ? 0 : shownAt + cfg.photoInterval * 1000 - Date.now();
+    if (wait > 0) await sleep(wait);
+    if (my !== seq) return;
+    pos = history.indexOf(p);
+    display(p, img);
+  } catch (e) {
+    if (my !== seq) return;
+    if (!slides[cur].classList.contains('on')) { $('notice').textContent = `${t('noPhoto')}: ${e.message}`; $('notice').hidden = false; }
+    photoTimer = setTimeout(nextPhoto, 30e3);
+  }
+}
+
+async function prevPhoto() {
+  if (pos <= 0) return;
+  clearTimeout(photoTimer);
+  const my = ++seq, target = pos - 1, p = history[target];
+  try {
+    const img = await loadImg(p);
+    if (my !== seq) return;
+    pos = target;
+    display(p, img);
+  } catch { if (my === seq) photoTimer = setTimeout(nextPhoto, 5e3); }
+}
+
+/* ---------- controls: buttons, arrow keys, swipe ---------- */
+let hideTimer = null;
+function showControls() {
+  $('stage').classList.add('controls');
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => $('stage').classList.remove('controls'), 4000);
+}
+$('prev').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); prevPhoto(); showControls(); };
+$('next').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); nextPhoto(true); showControls(); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') { prevPhoto(); showControls(); }
+  if (e.key === 'ArrowRight') { nextPhoto(true); showControls(); }
+});
+let swipeX = null;
+$('stage').addEventListener('pointerdown', e => { swipeX = e.clientX; showControls(); });
+$('stage').addEventListener('pointerup', e => {
+  if (swipeX === null) return;
+  const dx = e.clientX - swipeX; swipeX = null;
+  if (Math.abs(dx) > 60) dx > 0 ? prevPhoto() : nextPhoto(true);
+});
+$('stage').addEventListener('pointermove', e => { if (e.pointerType === 'mouse') showControls(); });
+
+/* ---------- weather ---------- */
+// fixed temperature scale: the same temperature always gets the same colour
+const TEMP_STOPS = [[-5, [110, 160, 235]], [5, [140, 200, 235]], [12, [170, 215, 190]], [18, [240, 210, 120]], [25, [242, 160, 75]], [32, [230, 95, 70]]];
+function tempColor(v) {
+  if (v <= TEMP_STOPS[0][0]) return `rgb(${TEMP_STOPS[0][1]})`;
+  for (let i = 1; i < TEMP_STOPS.length; i++) {
+    const [t1, c1] = TEMP_STOPS[i], [t0, c0] = TEMP_STOPS[i - 1];
+    if (v <= t1) { const f = (v - t0) / (t1 - t0); return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * f))})`; }
+  }
+  return `rgb(${TEMP_STOPS.at(-1)[1]})`;
+}
+
+const ICON = {
+  sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>',
+  moon: '<path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/>',
+  cloud: '<path d="M7.2 18.5h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 18.5z"/>',
+  partly: '<path d="M8.5 3.5v1.4M3.6 8.4H5M5 5l1 1M13 5l-1 1"/><path d="M5.6 11a3.4 3.4 0 1 1 6.3-2.4"/><path d="M9.2 20h8a3.4 3.4 0 0 0 .4-6.78 4.8 4.8 0 0 0-9.2.9A2.95 2.95 0 0 0 9.2 20z"/>',
+  fog: '<path d="M4 9h16M3 13h14M6 17h14"/>',
+  rain: '<path d="M7.2 15h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 15z"/><path d="M8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
+  drizzle: '<path d="M7.2 15h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 15z"/><path d="M9 18.5v.5M13 18.5v.5M17 18.5v.5"/>',
+  snow: '<path d="M7.2 15h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 15z"/><path d="M9 18.5l.01 0M12 20.5l.01 0M15 18.5l.01 0"/>',
+  storm: '<path d="M7.2 15h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 15z"/><path d="M12.5 15.5l-2 3.5h3l-2 3.5"/>',
+};
+function iconFor(code, day = 1) {
+  const k = code <= 1 ? (day ? 'sun' : 'moon') : code === 2 ? 'partly' : code === 3 ? 'cloud'
+    : code <= 48 ? 'fog' : code <= 57 ? 'drizzle' : code <= 67 || (code >= 80 && code <= 82) ? 'rain'
+    : code <= 77 || code === 85 || code === 86 ? 'snow' : 'storm';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+}
+
+async function loadWeather() {
+  try {
+    const w = await getJSON('api/weather');
+    const c = w.current, d = w.daily;
+    const idx = [1, 2, 3, 4, 5];                     // the next five days (index 0 is today)
+    const lo = Math.min(...idx.map(i => d.temperature_2m_min[i])), hi = Math.max(...idx.map(i => d.temperature_2m_max[i]));
+    const span = Math.max(hi - lo, 1);
+    const rows = idx.map(i => {
+      const name = new Date(d.time[i] + 'T12:00').toLocaleDateString(cfg.locale, { weekday: 'short' }).replace('.', '');
+      const mn = Math.round(d.temperature_2m_min[i]), mx = Math.round(d.temperature_2m_max[i]);
+      const left = (d.temperature_2m_min[i] - lo) / span * 100, width = (d.temperature_2m_max[i] - d.temperature_2m_min[i]) / span * 100;
+      const pr = d.precipitation_probability_max[i] ?? 0, mm = d.precipitation_sum[i] ?? 0;
+      return `<span class="n">${esc(name)}</span>${iconFor(d.weather_code[i])}
+        <span class="range"><span class="lo">${mn}°</span><span class="track"><i style="left:${left}%;width:${Math.max(width, 4)}%;background:linear-gradient(90deg,${tempColor(d.temperature_2m_min[i])},${tempColor(d.temperature_2m_max[i])})"></i></span><span>${mx}°</span></span>
+        <span class="rain ${pr < 20 ? 'dry' : ''}">${pr}%</span>
+        <span class="mm ${mm < 0.5 ? 'dry' : ''}">${mm.toLocaleString(cfg.locale, { maximumFractionDigits: mm < 10 ? 1 : 0 })} mm</span>`;
+    }).join('');
+    $('weatherNow').innerHTML = `${iconFor(c.weather_code, c.is_day)}
+        <div><div class="t">${Math.round(c.temperature_2m)}°</div>
+        <div class="d">${t('feels')} ${Math.round(c.apparent_temperature)}°, ${Math.round(d.temperature_2m_min[0])}°/${Math.round(d.temperature_2m_max[0])}°<br>${t('wind')} ${Math.round(c.wind_speed_10m)} km/u</div></div>`;
+    $('weatherDays').innerHTML = rows;
+    $('weatherDays').hidden = false;
+  } catch (e) {
+    $('weatherNow').innerHTML = `<p class="empty">${t('noWeather')}</p>`;
+    $('weatherDays').hidden = true;
+  }
+}
+
+/* ---------- waste banner ---------- */
+let wasteData = null;
+const BIN = c => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 7.5l1.1 12.2a1.3 1.3 0 0 0 1.3 1.2h6.2a1.3 1.3 0 0 0 1.3-1.2l1.1-12.2z" fill="${c}"/><rect x="4.5" y="4.6" width="15" height="2.9" rx="1" fill="${c}"/><path d="M10 10.5v7M14 10.5v7" stroke="rgb(0 0 0 / .28)" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+
+async function loadWaste() {
+  try { wasteData = await getJSON('api/waste'); } catch { wasteData = null; }
+  renderWaste();
+}
+// Always shows the next pickup. It stands out on the evening before (from the set time) and on the day itself until noon.
+function renderWaste() {
+  const el = $('waste');
+  if (!wasteData?.enabled || wasteData.showNext === false || !wasteData.pickups.length) { el.hidden = true; return; }
+  const now = new Date(), today = dayKey(now);
+  const tmr = new Date(now); tmr.setDate(tmr.getDate() + 1);
+  const tomorrow = dayKey(tmr);
+  const upcoming = wasteData.pickups.filter(p => p.date > today || (p.date === today && now.getHours() < 12));
+  if (!upcoming.length) { el.hidden = true; return; }
+  const first = upcoming[0].date;
+  const items = upcoming.filter(p => p.date === first);
+  const minsNow = now.getHours() * 60 + now.getMinutes();
+  const urgent = first === today || (first === tomorrow && minsNow >= mins(wasteData.bannerFrom || '17:00'));
+  const when = first === today ? t('today') : first === tomorrow ? t('tomorrow')
+    : new Date(first + 'T12:00').toLocaleDateString(cfg.locale, { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '');
+  const names = [...new Set(items.map(p => p.label))];
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${t('and')} ${names.at(-1)}` : names[0];
+  el.style.setProperty('--wc', items[0].color);
+  el.classList.toggle('urgent', urgent);
+  const label = when.charAt(0).toUpperCase() + when.slice(1);
+  el.innerHTML = `<div class="wtop"><span class="bins">${items.map(p => BIN(p.color)).join('')}</span><span class="wlabel">${esc(label)}</span></div>
+    <div class="wnames">${esc(list)}</div>`;
+  el.hidden = false;
+}
+
+/* ---------- agenda ---------- */
+// The agenda can be scrolled; after a minute without scrolling it glides back to the top.
+const AGENDA_RESET_MS = 60e3;
+let agendaHTML = '', agendaIdle = null;
+
+function renderAgenda(html) {
+  const el = $('agenda');
+  if (html === agendaHTML) return;            // unchanged: leave it alone so the scroll position stays
+  const top = el.scrollTop;
+  el.innerHTML = agendaHTML = html;
+  el.scrollTop = top;
+  updateAgendaFade();
+}
+function updateAgendaFade() {
+  const el = $('agenda');
+  el.classList.toggle('more-above', el.scrollTop > 4);
+  el.classList.toggle('more-below', el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+}
+$('agenda').addEventListener('scroll', () => {
+  updateAgendaFade();
+  clearTimeout(agendaIdle);
+  if ($('agenda').scrollTop > 0) agendaIdle = setTimeout(() => $('agenda').scrollTo({ top: 0, behavior: 'smooth' }), AGENDA_RESET_MS);
+}, { passive: true });
+window.addEventListener('resize', updateAgendaFade);
+
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+async function loadAgenda() {
+  try {
+    const cal = await getJSON('api/calendar');
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const byDay = new Map();
+    for (let i = 0; i < cal.days; i++) { const d = new Date(start); d.setDate(d.getDate() + i); byDay.set(dayKey(d), { date: d, items: [] }); }
+
+    for (const ev of cal.events) {
+      if (ev.allDay) {                                   // spread multi-day all-day events over each day
+        for (const [k, day] of byDay) if (k >= ev.start && k <= ev.end) day.items.push(ev);
+      } else {
+        const s = new Date(ev.start), e = new Date(ev.end);
+        for (const [k, day] of byDay) {
+          const ds = day.date, de = new Date(ds); de.setDate(de.getDate() + 1);
+          if (s < de && (e > ds || +e === +s && s >= ds)) day.items.push({ ...ev, continues: s < ds });
+        }
+      }
+    }
+
+    const tomorrow = new Date(start); tomorrow.setDate(tomorrow.getDate() + 1);
+    let html = '';
+    for (const [k, day] of byDay) {
+      const isToday = k === dayKey(start);
+      if (!day.items.length && !isToday) continue;       // skip empty days to fit more
+      const label = isToday ? t('today') : k === dayKey(tomorrow) ? t('tomorrow')
+        : day.date.toLocaleDateString(cfg.locale, { weekday: 'short' }).replace('.', '');
+      const sub = day.date.toLocaleDateString(cfg.locale, { day: 'numeric', month: 'short' }).replace('.', '');
+      day.items.sort((a, b) => (b.allDay - a.allDay) || (a.continues ? -1 : 0) || (a.start < b.start ? -1 : 1));
+      const items = day.items.length ? day.items.map(ev => {
+        const time = ev.allDay || ev.continues ? '' : new Date(ev.start).toLocaleTimeString(cfg.locale, { hour: '2-digit', minute: '2-digit' });
+        return `<div class="ev ${ev.allDay && !ev.waste ? 'allday' : ''} ${ev.waste ? 'is-waste' : ''}" style="${ev.color ? `--c:${esc(ev.color)}` : ''}">
+          ${ev.waste
+            ? `<span class="bin">${BIN(ev.color)}</span><time></time><span class="ti">${esc(ev.title)}</span>`
+            : `<span class="dot"></span><time>${time}</time><span class="ti">${esc(ev.title)}</span>`}</div>`;
+      }).join('') : `<p class="empty">${t('nothing')}</p>`;
+      html += `<div class="day ${isToday ? 'is-today' : ''}"><h3>${esc(label)}<small>${esc(sub)}</small></h3><div>${items}</div></div>`;
+    }
+    const errs = (cal.errors || []).map(x => `<p class="empty">⚠ ${esc(x)}</p>`).join('');
+    renderAgenda(errs + html);
+  } catch (e) {
+    renderAgenda(`<p class="empty">${t('noCal')}</p>`);
+  }
+}
+
+/* ---------- boot ---------- */
+(async () => {
+  try { cfg = { ...cfg, ...(await getJSON('api/config')) }; } catch {}
+  document.documentElement.lang = cfg.locale.slice(0, 2);
+  tick(); updateNight(); setInterval(() => { tick(); updateNight(); }, 5000);
+  nextPhoto(true);
+  loadWeather(); setInterval(loadWeather, 15 * 60e3);
+  loadAgenda(); setInterval(loadAgenda, 60e3);
+  loadWaste(); setInterval(loadWaste, 30 * 60e3); setInterval(renderWaste, 60e3);
+  // reload when settings were changed on the admin page
+  setInterval(async () => { try { const c = await getJSON('api/config'); if (cfg.version && c.version !== cfg.version) location.reload(); } catch {} }, 60e3);
+  // reload once a night so a long-running kiosk browser stays fresh
+  const loaded = Date.now();
+  setInterval(() => { const n = new Date(); if (n.getHours() === 3 && n.getMinutes() === 30 && Date.now() - loaded > 5 * 60e3) location.reload(); }, 60e3);
+})();
+</script>
+</body>
+</html>

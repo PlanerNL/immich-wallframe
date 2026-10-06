@@ -1,0 +1,24 @@
+services:
+  wallframe:
+    image: ghcr.io/planernl/immich-wallframe:latest
+    # or build it yourself:  build: .
+    container_name: immich-wallframe
+    restart: unless-stopped
+    ports:
+      - "3050:3000"
+    volumes:
+      - ./data:/app/data                 # settings saved on the admin page
+    environment:
+      TZ: Europe/Amsterdam
+      ADMIN_PASSWORD: change-me          # login for http://<host>:3050/admin
+      IMMICH_URL: http://192.168.1.10:2283
+      IMMICH_API_KEY: change-me          # needs asset.read + asset.view
+      # Everything below can also be set on the admin page instead
+      LATITUDE: "52.37"
+      LONGITUDE: "4.90"
+      LOCALE: nl-NL
+      PHOTO_INTERVAL: 45
+      NIGHT_START: "23:00"
+      NIGHT_END: "07:00"
+      # Name|colour|url, separated by ;
+      CALENDARS: "Family|#f0a846|https://example.com/calendar.ics"
