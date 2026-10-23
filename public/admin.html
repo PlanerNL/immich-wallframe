@@ -11,175 +11,282 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #1c2127; --card: #252c33; --line: #37414b; --ink: #f1f0ec; --muted: #9aa5ae;
-    --accent: #f0a846; --ok: #7cc389; --bad: #ef7b6b;
+    --bg: #171b20; --side: #1d2228; --card: #232a31; --line: #343e48; --ink: #f1f0ec; --muted: #9aa5ae;
+    --accent: #f0a846; --ok: #7cc389; --bad: #ef7b6b; --sidew: 248px;
     --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
     --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
   }
   [hidden] { display: none !important; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 120px; }
-  h1 { font-family: var(--display); font-size: 30px; margin: 0 0 4px; }
-  h2 { font-family: var(--display); font-size: 20px; margin: 0 0 14px; }
-  .sub { color: var(--muted); margin: 0 0 28px; }
-  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin-bottom: 18px; }
-  .row { display: grid; grid-template-columns: 200px 1fr; gap: 6px 18px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
-  .row:first-of-type { border-top: 0; padding-top: 0; }
+  html { scroll-padding-top: 80px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+  h1, h2, h3 { font-family: var(--display); margin: 0; }
+  code { font-size: .92em; background: rgb(255 255 255 / .07); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---- shell ---- */
+  .shell { display: grid; grid-template-columns: var(--sidew) 1fr; min-height: 100vh; }
+  .side { position: sticky; top: 0; height: 100vh; background: var(--side); border-right: 1px solid var(--line);
+           display: flex; flex-direction: column; padding: 22px 14px; gap: 4px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 18px; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  .brand b { font-family: var(--display); font-size: 19px; display: block; line-height: 1.1; }
+  .brand small { color: var(--muted); font-size: 12px; }
+  .navlist { display: flex; flex-direction: column; gap: 2px; }
+  .nav { position: relative; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 9px;
+          color: var(--muted); text-decoration: none; font-weight: 500; transition: background .15s, color .15s; }
+  .nav svg { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .nav:hover { background: rgb(255 255 255 / .04); color: var(--ink); }
+  .nav.on { background: rgb(240 168 70 / .13); color: var(--ink); }
+  .nav.on svg { color: var(--accent); }
+  .nav .dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: var(--bad); margin-left: auto; }
+  .nav.has-err .dot { display: block; }
+  .side .foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .side .foot a, .side .foot button { text-align: left; }
+  .linkbtn { display: block; color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 9px; border: 0; background: none; font: inherit; cursor: pointer; }
+  .linkbtn:hover { color: var(--ink); background: rgb(255 255 255 / .04); }
+
+  .content { min-width: 0; padding: 36px 40px 130px; }
+  .pane { max-width: 760px; }
+  .phead { margin-bottom: 22px; }
+  .phead h2 { font-size: 28px; }
+  .phead p { color: var(--muted); margin: 4px 0 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; margin-bottom: 16px; }
+  .card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-family: var(--body); font-weight: 600; margin-bottom: 12px; }
+  .ctop { margin: -4px 0 14px; }
+
+  /* ---- fields ---- */
+  .row { display: grid; grid-template-columns: 200px 1fr; gap: 6px 18px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); }
+  .card h3 + .row, .card .ctop + .row { border-top: 0; padding-top: 0; }
   .row > label { padding-top: 8px; font-weight: 500; }
   .hint { color: var(--muted); font-size: 13px; margin-top: 4px; }
   .src { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .src button { font-size: 12px; padding: 0; background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
   .err { color: var(--bad); font-size: 13px; margin-top: 4px; }
+  .err:empty { display: none; }
   input, select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
-  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input:focus-visible, select:focus-visible, button:focus-visible, .nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   input[type=checkbox] { width: 20px; height: 20px; margin-top: 8px; accent-color: var(--accent); }
   input[type=color] { width: 44px; height: 38px; padding: 3px; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
   button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 8px 14px; cursor: pointer; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #1c2127; font-weight: 600; }
   .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
   .checks label { display: flex; gap: 8px; align-items: center; }
   .checks input[type=checkbox] { margin: 6px 0; }
-  .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
   .fontrow { display: grid; grid-template-columns: 1fr 104px; gap: 10px; }
   .fontrow .size { display: flex; align-items: center; gap: 6px; }
   .fontrow .size input { text-align: right; }
   .fprev { margin-top: 6px; font-size: 20px; color: var(--ink); }
-  .kiosk-back { display: none; }
-  body.kiosk .kiosk-back { display: inline-block; }
   .cal { display: grid; grid-template-columns: 44px 150px 1fr auto; gap: 8px; margin-bottom: 8px; }
-  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgb(28 33 39 / .95); border-top: 1px solid var(--line); padding: 12px 20px; }
-  .bar div { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .test { margin: 14px 0 0; padding-left: 20px; } .test li { margin: 4px 0; }
+  .kiosk-back { display: none !important; }
+  body.kiosk .kiosk-back { display: block !important; }
+  body.kiosk .notkiosk { display: none; }
+
+  /* ---- save bar ---- */
+  .bar { position: fixed; left: var(--sidew); right: 0; bottom: 0; background: rgb(23 27 32 / .94); backdrop-filter: blur(8px);
+          border-top: 1px solid var(--line); padding: 12px 40px; }
+  .bar > div { max-width: 760px; display: flex; gap: 10px; align-items: center; }
   .bar .msg { flex: 1; color: var(--muted); }
-  .msg.good { color: var(--ok); } .msg.bad { color: var(--bad); }
-  .test { margin: 0; padding-left: 20px; } .test li { margin: 4px 0; }
-  .login { max-width: 360px; margin: 18vh auto 0; }
-  .top { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+  .msg.good { color: var(--ok); } .msg.bad { color: var(--bad); } .msg.dirty { color: var(--accent); }
+
+  /* ---- login ---- */
+  .login { max-width: 380px; margin: 16vh auto 0; padding: 0 20px; }
+  .login .brand { padding: 0 0 22px; }
+  .login .card { padding: 24px; }
+  .login button { width: 100%; margin-top: 8px; }
+
+  /* ---- small screens: menu becomes a scrolling bar on top ---- */
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .side { position: sticky; z-index: 5; height: auto; flex-direction: row; align-items: center; padding: 8px 10px; gap: 6px;
+             border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+    .side::-webkit-scrollbar { display: none; }
+    .side .brand { display: none; }
+    .navlist { flex-direction: row; }
+    .nav { white-space: nowrap; padding: 8px 12px; }
+    .side .foot { margin: 0; padding: 0 0 0 6px; border-top: 0; border-left: 1px solid var(--line); flex-direction: row; }
+    .linkbtn { white-space: nowrap; }
+    .content { padding: 24px 16px 130px; }
+    .bar { left: 0; padding: 12px 16px; }
+    .bar .msg { font-size: 13px; line-height: 1.3; }
+  }
   @media (max-width: 620px) {
     .row { grid-template-columns: 1fr; } .row > label { padding-top: 0; }
-    .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
-  .checks label { display: flex; gap: 8px; align-items: center; }
-  .checks input[type=checkbox] { margin: 6px 0; }
-  .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
-  .cal { grid-template-columns: 44px 1fr auto; } .cal .url { grid-column: 1 / -1; }
+    .cal { grid-template-columns: 44px 1fr auto; } .cal .url { grid-column: 1 / -1; }
+    .phead h2 { font-size: 24px; }
   }
 </style>
 </head>
 <body>
 
 <main id="login" class="login" hidden>
-  <h1>Fotolijst</h1>
-  <p class="sub">Log in om de instellingen te wijzigen.</p>
-  <section>
+  <div class="brand"><img src="../icon.png" alt=""><div><b>Fotolijst</b><small>Beheer</small></div></div>
+  <div class="card">
     <form id="loginForm">
       <label for="pw">Wachtwoord</label>
-      <input id="pw" type="password" autocomplete="current-password" required style="margin:8px 0 14px">
+      <input id="pw" type="password" autocomplete="current-password" required style="margin:8px 0 6px">
       <button class="primary" type="submit">Inloggen</button>
       <button class="kiosk-back" type="button" data-back>Terug naar fotolijst</button>
       <p class="err" id="loginErr"></p>
     </form>
-  </section>
-</main>
-
-<main id="app" hidden>
-  <div class="top">
-    <div><h1>Fotolijst beheren</h1><p class="sub">Wijzigingen zijn direct actief; het scherm laadt binnen een minuut opnieuw.</p></div>
-    <div style="display:flex;gap:8px"><button class="kiosk-back" type="button" data-back>Terug naar fotolijst</button><button id="logout" type="button">Uitloggen</button></div>
   </div>
-
-  <section>
-    <h2>Foto's</h2>
-    <div class="row"><label for="immichUrl">Immich-adres</label><div><input id="immichUrl" placeholder="http://192.168.1.10:2283"></div></div>
-    <div class="row"><label for="immichKey">API-sleutel</label><div><input id="immichKey" type="password" autocomplete="off"><div class="hint" id="keyHint"></div></div></div>
-    <div class="row"><label for="albumIds">Album-ID's</label><div><input id="albumIds" placeholder="leeg = hele bibliotheek"><div class="hint">Komma gescheiden. Het ID staat in de album-URL in Immich.</div></div></div>
-    <div class="row"><label for="favoritesOnly">Alleen favorieten</label><div><input id="favoritesOnly" type="checkbox"></div></div>
-    <div class="row"><label for="imageSize">Beeldkwaliteit</label><div><select id="imageSize"><option value="preview">Preview (snel)</option><option value="fullsize">Volledig (scherper op 4K)</option></select></div></div>
-    <div class="row"><label for="photoInterval">Seconden per foto</label><div><input id="photoInterval" type="number" min="5" max="3600"></div></div>
-    <div class="row"><label for="progressBar">Voortgangsbalk</label><div><input id="progressBar" type="checkbox"><div class="hint">Dunne balk onder de foto die laat zien wanneer de volgende komt.</div></div></div>
-    <div class="row"><label for="placeNamesOsm">Plaatsnamen vertalen</label><div><input id="placeNamesOsm" type="checkbox"><div class="hint">Haalt plaatsnamen in de gekozen taal op bij OpenStreetMap, op basis van de GPS-positie van de foto. Uit: alleen het land wordt vertaald.</div></div></div>
-    <div class="row"><label>Info bij de foto</label><div id="captionFields" class="checks">
-      <label><input type="checkbox" value="date"> Datum</label>
-      <label><input type="checkbox" value="time"> Tijd</label>
-      <label><input type="checkbox" value="ago"> Hoe lang geleden</label>
-      <label><input type="checkbox" value="place"> Plaats</label>
-      <label><input type="checkbox" value="album"> Album <span class="hint">(API-sleutel met album.read)</span></label>
-      <label><input type="checkbox" value="people"> Personen <span class="hint">(API-sleutel met person.read)</span></label>
-      <label><input type="checkbox" value="camera"> Camera</label>
-    </div></div>
-  </section>
-
-  <section>
-    <h2>Agenda</h2>
-    <div id="calendars"></div>
-    <button type="button" id="addCal">Agenda toevoegen</button>
-    <div class="err" data-err="calendars"></div>
-    <div class="src" data-src="calendars"></div>
-    <div class="row" style="margin-top:14px"><label for="calendarDays">Dagen vooruit</label><div><input id="calendarDays" type="number" min="1" max="60"></div></div>
-    <div class="row"><label for="showEmptyDays">Lege dagen tonen</label><div><input id="showEmptyDays" type="checkbox"><div class="hint">Ook dagen zonder afspraken, met "Niets gepland".</div></div></div>
-    <div class="row"><label for="calendarRefresh">Verversen (minuten)</label><div><input id="calendarRefresh" type="number" min="1" max="1440"></div></div>
-  </section>
-
-  <section>
-    <h2>Afval (Twente Milieu)</h2>
-    <div class="row"><label>Adres</label><div>
-      <div class="pair3"><input id="wastePostcode" placeholder="Postcode" aria-label="Postcode" autocomplete="off"><input id="wasteHouseNumber" inputmode="numeric" placeholder="Huisnr." aria-label="Huisnummer"><input id="wasteHouseLetter" placeholder="Toev." aria-label="Toevoeging"></div>
-      <div class="hint">Leeg laten om de afvalmelding uit te zetten.</div></div></div>
-    <div class="row"><label for="wasteShowNext">Naast het weer tonen</label><div><input id="wasteShowNext" type="checkbox"><div class="hint">De eerstvolgende ophaling rechts naast de huidige temperatuur.</div></div></div>
-    <div class="row"><label for="wasteBannerFrom">Opvallend vanaf</label><div><input id="wasteBannerFrom" type="time"><div class="hint">De eerstvolgende ophaling staat er altijd. De avond ervoor wordt hij vanaf deze tijd opvallend gekleurd, op de ophaaldag zelf tot 12:00.</div></div></div>
-    <div class="row"><label for="wasteInAgenda">Toevoegen aan agenda</label><div><input id="wasteInAgenda" type="checkbox"></div></div>
-  </section>
-
-  <section>
-    <h2>Weer</h2>
-    <div class="row"><label>Locatie</label><div>
-      <div class="pair"><input id="lat" inputmode="decimal" placeholder="Breedtegraad" aria-label="Breedtegraad"><input id="lon" inputmode="decimal" placeholder="Lengtegraad" aria-label="Lengtegraad"></div>
-      <div class="err" data-err="lon"></div><div class="src" data-src="lon"></div>
-      <div class="hint">Tip: klik met rechts op een plek in Google Maps om de coördinaten te kopiëren.</div></div></div>
-    <div class="row"><label for="forecastDays">Dagen voorspelling</label><div><input id="forecastDays" type="number" min="1" max="14"><div class="hint">1 tot 14 dagen. Meer dagen laat minder ruimte over voor de agenda.</div></div></div>
-  </section>
-
-  <section>
-    <h2>Nachtstand</h2>
-    <div class="row"><label>Van – tot</label><div>
-      <div class="pair"><input id="nightStart" type="time" aria-label="Begintijd"><input id="nightEnd" type="time" aria-label="Eindtijd"></div>
-      <div class="err" data-err="nightEnd"></div><div class="src" data-src="nightEnd"></div>
-      <div class="hint">Leeg laten om de nachtstand uit te zetten.</div></div></div>
-    <div class="row"><label for="nightMode">Weergave</label><div><select id="nightMode"><option value="black">Zwart scherm</option><option value="clock">Gedimde klok</option></select></div></div>
-    <div class="row"><label for="wakeMinutes">Wekken bij tik (min.)</label><div><input id="wakeMinutes" type="number" min="1" max="120"></div></div>
-  </section>
-
-  <section>
-    <h2>Lettertypes</h2>
-    <p class="hint" style="margin-top:0">Kies per onderdeel een lettertype en een grootte (100% = oorspronkelijk, 50 tot 250%). "Standaard" is het oorspronkelijke lettertype.</p>
-    <div class="row"><label for="fontClock">Tijd</label><div><div class="fontrow"><select id="fontClock" class="fontsel"></select><label class="size"><input id="sizeClock" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontClock">18:42</div></div></div>
-    <div class="row"><label for="fontDate">Datum</label><div><div class="fontrow"><select id="fontDate" class="fontsel"></select><label class="size"><input id="sizeDate" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontDate">Vrijdag 23 oktober</div></div></div>
-    <div class="row"><label for="fontWeather">Huidige weer</label><div><div class="fontrow"><select id="fontWeather" class="fontsel"></select><label class="size"><input id="sizeWeather" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontWeather">17° voelt als 15°</div></div></div>
-    <div class="row"><label for="fontForecast">Weersvoorspelling</label><div><div class="fontrow"><select id="fontForecast" class="fontsel"></select><label class="size"><input id="sizeForecast" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontForecast">za 9° – 14° 80%</div></div></div>
-    <div class="row"><label for="fontAgendaDays">Agenda: dagen</label><div><div class="fontrow"><select id="fontAgendaDays" class="fontsel"></select><label class="size"><input id="sizeAgendaDays" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgendaDays">Morgen · 24 okt</div></div></div>
-    <div class="row"><label for="fontAgenda">Agenda: afspraken</label><div><div class="fontrow"><select id="fontAgenda" class="fontsel"></select><label class="size"><input id="sizeAgenda" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgenda">09:30 Zwemles</div></div></div>
-    <div class="row"><label for="fontCaption">Info bij de foto</label><div><div class="fontrow"><select id="fontCaption" class="fontsel"></select><label class="size"><input id="sizeCaption" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontCaption">zondag 18 juli 2021</div></div></div>
-  </section>
-
-  <section>
-    <h2>Weergave</h2>
-    <div class="row"><label for="locale">Taal en datumnotatie</label><div><select id="locale"><option value="nl-NL">Nederlands</option><option value="nl-BE">Nederlands (België)</option><option value="en-GB">English (UK)</option><option value="en-US">English (US)</option><option value="de-DE">Deutsch</option></select></div></div>
-    <div class="row"><label for="adminButton">Verborgen knop</label><div><input id="adminButton" type="checkbox"><div class="hint">Houd de rechterbovenhoek van de fotolijst 2 seconden ingedrukt om deze pagina te openen. Inloggen gaat met het wachtwoord uit <code>ADMIN_PASSWORD</code>; na 5 minuten zonder activiteit gaat het scherm terug naar de fotolijst en log je automatisch uit.</div></div></div>
-  </section>
-
-  <section>
-    <h2>Verbinding testen</h2>
-    <p class="hint" style="margin-top:0">Test de opgeslagen instellingen: Immich, het weer en elke agenda.</p>
-    <button type="button" id="testBtn">Testen</button>
-    <ul class="test" id="testOut"></ul>
-  </section>
 </main>
 
-<div class="bar" id="bar" hidden><div>
-  <span class="msg" id="msg" role="status"></span>
-  <button type="button" id="revert">Ongedaan maken</button>
-  <button type="button" class="primary" id="save">Opslaan</button>
-</div></div>
+<div class="shell" id="app" hidden>
+  <aside class="side">
+    <div class="brand"><img src="../icon.png" alt=""><div><b>Fotolijst</b><small>Beheer</small></div></div>
+    <nav class="navlist" aria-label="Instellingen">
+      <a href="#immich" class="nav" data-nav="immich"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 15l4.5-4 4 3.5 3-2.5 5 4"/><circle cx="15.5" cy="9.5" r="1.5"/></svg><span>Immich</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#show" class="nav" data-nav="show"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l4 2-4 2z"/><path d="M6 20h12"/></svg><span>Diavoorstelling</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#agenda" class="nav" data-nav="agenda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Agenda</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#afval" class="nav" data-nav="afval"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 7.5l1.1 12.2a1.3 1.3 0 0 0 1.3 1.2h6.2a1.3 1.3 0 0 0 1.3-1.2l1.1-12.2"/><path d="M4.5 7.5h15M9.5 7.5V5h5v2.5M10 11v6M14 11v6"/></svg><span>Afval</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#weer" class="nav" data-nav="weer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 18.5h9.6a4 4 0 0 0 .5-7.97 5.6 5.6 0 0 0-10.8 1.1A3.45 3.45 0 0 0 7.2 18.5z"/></svg><span>Weer</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#uiterlijk" class="nav" data-nav="uiterlijk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L10 5h1l5 14M7 14h7"/><path d="M17 9h3M18.5 7.5v3"/></svg><span>Uiterlijk</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#nacht" class="nav" data-nav="nacht"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></svg><span>Nachtstand</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#toegang" class="nav" data-nav="toegang"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Toegang</span><i class="dot" aria-hidden="true"></i></a>
+      <a href="#test" class="nav" data-nav="test"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg><span>Verbinding testen</span><i class="dot" aria-hidden="true"></i></a>
+    </nav>
+    <div class="foot">
+      <button class="linkbtn kiosk-back" type="button" data-back>← Terug naar fotolijst</button>
+      <a class="linkbtn notkiosk" href="../" target="_blank" rel="noopener">Fotolijst openen ↗</a>
+      <button class="linkbtn" id="logout" type="button">Uitloggen</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="pane" id="pane-immich" data-pane="immich" hidden>
+      <header class="phead"><h2>Immich</h2><p>Verbinding met je Immich-server en welke foto's er getoond worden.</p></header>
+      <div class="card">
+        <h3>Verbinding</h3>
+        <div class="row"><label for="immichUrl">Immich-adres</label><div><input id="immichUrl" placeholder="http://192.168.1.10:2283"></div></div>
+        <div class="row"><label for="immichKey">API-sleutel</label><div><input id="immichKey" type="password" autocomplete="off"><div class="hint" id="keyHint"></div></div></div>
+      </div>
+      <div class="card">
+        <h3>Selectie</h3>
+        <div class="row"><label for="albumIds">Album-ID's</label><div><input id="albumIds" placeholder="leeg = hele bibliotheek"><div class="hint">Komma gescheiden. Het ID staat in de album-URL in Immich.</div></div></div>
+        <div class="row"><label for="favoritesOnly">Alleen favorieten</label><div><input id="favoritesOnly" type="checkbox"></div></div>
+        <div class="row"><label for="imageSize">Beeldkwaliteit</label><div><select id="imageSize"><option value="preview">Preview (snel)</option><option value="fullsize">Volledig (scherper op 4K)</option></select></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-show" data-pane="show" hidden>
+      <header class="phead"><h2>Diavoorstelling</h2><p>Hoe lang een foto blijft staan en welke informatie erbij komt.</p></header>
+      <div class="card">
+        <h3>Wisselen</h3>
+        <div class="row"><label for="photoInterval">Seconden per foto</label><div><input id="photoInterval" type="number" min="5" max="3600"></div></div>
+        <div class="row"><label for="progressBar">Voortgangsbalk</label><div><input id="progressBar" type="checkbox"><div class="hint">Dunne balk onder de foto die laat zien wanneer de volgende komt.</div></div></div>
+      </div>
+      <div class="card">
+        <h3>Info bij de foto</h3>
+        <div class="row"><label>Tonen</label><div id="captionFields" class="checks">
+          <label><input type="checkbox" value="date"> Datum</label>
+          <label><input type="checkbox" value="time"> Tijd</label>
+          <label><input type="checkbox" value="ago"> Hoe lang geleden</label>
+          <label><input type="checkbox" value="place"> Plaats</label>
+          <label><input type="checkbox" value="album"> Album <span class="hint">(album.read)</span></label>
+          <label><input type="checkbox" value="people"> Personen <span class="hint">(person.read)</span></label>
+          <label><input type="checkbox" value="camera"> Camera</label>
+        </div></div>
+        <div class="row"><label for="placeNamesOsm">Plaatsnamen vertalen</label><div><input id="placeNamesOsm" type="checkbox"><div class="hint">Haalt plaatsnamen in de gekozen taal op bij OpenStreetMap, op basis van de GPS-positie van de foto. Uit: alleen het land wordt vertaald.</div></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-agenda" data-pane="agenda" hidden>
+      <header class="phead"><h2>Agenda</h2><p>De iCal-agenda's die op de fotolijst verschijnen.</p></header>
+      <div class="card">
+        <h3>Agenda's</h3><p class="hint ctop">Kleur, naam en iCal-adres. <code>webcal://</code> mag ook.</p>
+        <div id="calendars"></div>
+        <button type="button" id="addCal">Agenda toevoegen</button>
+        <div class="err" data-err="calendars"></div>
+      </div>
+      <div class="card">
+        <h3>Weergave</h3>
+        <div class="row"><label for="calendarDays">Dagen vooruit</label><div><input id="calendarDays" type="number" min="1" max="60"></div></div>
+        <div class="row"><label for="showEmptyDays">Lege dagen tonen</label><div><input id="showEmptyDays" type="checkbox"><div class="hint">Ook dagen zonder afspraken, met "Niets gepland".</div></div></div>
+        <div class="row"><label for="calendarRefresh">Verversen (minuten)</label><div><input id="calendarRefresh" type="number" min="1" max="1440"></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-afval" data-pane="afval" hidden>
+      <header class="phead"><h2>Afval</h2><p>Ophaaldagen van Twente Milieu.</p></header>
+      <div class="card">
+        <h3>Adres</h3>
+        <div class="row"><label>Postcode en huisnummer</label><div>
+          <div class="pair3"><input id="wastePostcode" placeholder="Postcode" aria-label="Postcode" autocomplete="off"><input id="wasteHouseNumber" inputmode="numeric" placeholder="Huisnr." aria-label="Huisnummer"><input id="wasteHouseLetter" placeholder="Toev." aria-label="Toevoeging"></div>
+          <div class="hint">Leeg laten om de afvalmelding uit te zetten.</div></div></div>
+      </div>
+      <div class="card">
+        <h3>Weergave</h3>
+        <div class="row"><label for="wasteShowNext">Naast het weer tonen</label><div><input id="wasteShowNext" type="checkbox"><div class="hint">De eerstvolgende ophaling rechts naast de huidige temperatuur.</div></div></div>
+        <div class="row"><label for="wasteBannerFrom">Opvallend vanaf</label><div><input id="wasteBannerFrom" type="time"><div class="hint">De avond ervoor wordt de ophaling vanaf deze tijd opvallend gekleurd, op de ophaaldag zelf tot 12:00.</div></div></div>
+        <div class="row"><label for="wasteInAgenda">Toevoegen aan agenda</label><div><input id="wasteInAgenda" type="checkbox"></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-weer" data-pane="weer" hidden>
+      <header class="phead"><h2>Weer</h2><p>Locatie en voorspelling, via Open-Meteo.</p></header>
+      <div class="card">
+        <h3>Weer</h3>
+        <div class="row"><label>Locatie</label><div>
+          <div class="pair"><input id="lat" inputmode="decimal" placeholder="Breedtegraad" aria-label="Breedtegraad"><input id="lon" inputmode="decimal" placeholder="Lengtegraad" aria-label="Lengtegraad"></div>
+          <div class="hint">Tip: klik met rechts op een plek in Google Maps om de coördinaten te kopiëren.</div></div></div>
+        <div class="row"><label for="forecastDays">Dagen voorspelling</label><div><input id="forecastDays" type="number" min="1" max="14"><div class="hint">1 tot 14 dagen. Meer dagen laat minder ruimte over voor de agenda.</div></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-uiterlijk" data-pane="uiterlijk" hidden>
+      <header class="phead"><h2>Uiterlijk</h2><p>Taal, lettertypes en lettergroottes.</p></header>
+      <div class="card">
+        <h3>Taal</h3>
+        <div class="row"><label for="locale">Taal en datumnotatie</label><div><select id="locale"><option value="nl-NL">Nederlands</option><option value="nl-BE">Nederlands (België)</option><option value="en-GB">English (UK)</option><option value="en-US">English (US)</option><option value="de-DE">Deutsch</option></select></div></div>
+      </div>
+      <div class="card">
+        <h3>Lettertypes</h3><p class="hint ctop">Kies per onderdeel een lettertype en een grootte (100% = oorspronkelijk, 50 tot 250%).</p>
+        <div class="row"><label for="fontClock">Tijd</label><div><div class="fontrow"><select id="fontClock" class="fontsel"></select><label class="size"><input id="sizeClock" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Tijd in procent"><span>%</span></label></div><div class="fprev" data-for="fontClock">18:42</div></div></div>
+        <div class="row"><label for="fontDate">Datum</label><div><div class="fontrow"><select id="fontDate" class="fontsel"></select><label class="size"><input id="sizeDate" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Datum in procent"><span>%</span></label></div><div class="fprev" data-for="fontDate">Vrijdag 23 oktober</div></div></div>
+        <div class="row"><label for="fontWeather">Huidige weer</label><div><div class="fontrow"><select id="fontWeather" class="fontsel"></select><label class="size"><input id="sizeWeather" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Huidige weer in procent"><span>%</span></label></div><div class="fprev" data-for="fontWeather">17° voelt als 15°</div></div></div>
+        <div class="row"><label for="fontForecast">Weersvoorspelling</label><div><div class="fontrow"><select id="fontForecast" class="fontsel"></select><label class="size"><input id="sizeForecast" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Weersvoorspelling in procent"><span>%</span></label></div><div class="fprev" data-for="fontForecast">za 9° – 14° 80%</div></div></div>
+        <div class="row"><label for="fontAgendaDays">Agenda: dagen</label><div><div class="fontrow"><select id="fontAgendaDays" class="fontsel"></select><label class="size"><input id="sizeAgendaDays" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Agenda: dagen in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgendaDays">Morgen · 24 okt</div></div></div>
+        <div class="row"><label for="fontAgenda">Agenda: afspraken</label><div><div class="fontrow"><select id="fontAgenda" class="fontsel"></select><label class="size"><input id="sizeAgenda" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Agenda: afspraken in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgenda">09:30 Zwemles</div></div></div>
+        <div class="row"><label for="fontCaption">Info bij de foto</label><div><div class="fontrow"><select id="fontCaption" class="fontsel"></select><label class="size"><input id="sizeCaption" type="number" min="50" max="250" step="5" aria-label="Lettergrootte Info bij de foto in procent"><span>%</span></label></div><div class="fprev" data-for="fontCaption">zondag 18 juli 2021</div></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-nacht" data-pane="nacht" hidden>
+      <header class="phead"><h2>Nachtstand</h2><p>Het scherm 's nachts op zwart of een gedimde klok.</p></header>
+      <div class="card">
+        <h3>Schema</h3>
+        <div class="row"><label>Van – tot</label><div>
+          <div class="pair"><input id="nightStart" type="time" aria-label="Begintijd"><input id="nightEnd" type="time" aria-label="Eindtijd"></div>
+          <div class="hint">Leeg laten om de nachtstand uit te zetten.</div></div></div>
+        <div class="row"><label for="nightMode">Weergave</label><div><select id="nightMode"><option value="black">Zwart scherm</option><option value="clock">Gedimde klok</option></select></div></div>
+        <div class="row"><label for="wakeMinutes">Wekken bij tik (min.)</label><div><input id="wakeMinutes" type="number" min="1" max="120"></div></div>
+      </div>
+    </section>
+    <section class="pane" id="pane-toegang" data-pane="toegang" hidden>
+      <header class="phead"><h2>Toegang</h2><p>Hoe deze beheerpagina bereikbaar is.</p></header>
+      <div class="card">
+        <h3>Verborgen knop</h3>
+        <div class="row"><label for="adminButton">Knop op de fotolijst</label><div><input id="adminButton" type="checkbox"><div class="hint">Houd de rechterbovenhoek van de fotolijst 2 seconden ingedrukt om deze pagina te openen. Na 5 minuten zonder activiteit gaat het scherm terug naar de fotolijst en word je uitgelogd.</div></div></div>
+      </div>
+      <div class="card">
+        <h3>Wachtwoord</h3>
+        <p class="hint ctop">Het wachtwoord staat in de containervariabele <code>ADMIN_PASSWORD</code> en kan alleen daar worden gewijzigd. Zo staat het nooit in de instellingen of op het scherm.</p>
+      </div>
+    </section>
+    <section class="pane" id="pane-test" data-pane="test" hidden>
+      <header class="phead"><h2>Verbinding testen</h2><p>Controleer de opgeslagen instellingen.</p></header>
+      <div class="card">
+        <h3>Test</h3>
+        <p class="hint ctop">Test Immich, het weer, elke agenda en Twente Milieu.</p>
+        <button type="button" id="testBtn" class="primary">Testen</button>
+        <ul class="test" id="testOut"></ul>
+      </div>
+    </section>
+  </main>
+
+  <div class="bar" id="bar" hidden><div>
+    <span class="msg" id="msg" role="status">Alles opgeslagen</span>
+    <button type="button" id="revert">Ongedaan maken</button>
+    <button type="button" class="primary" id="save">Opslaan</button>
+  </div></div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -268,7 +375,8 @@ function fill(s) {
     if (k === 'calendars') $('addCal').after(src); else host.append(src);
     if (!host.querySelector(`[data-err="${k}"]`)) { const e = document.createElement('div'); e.className = 'err'; e.dataset.err = k; host.append(e); }
   }
-  msg('');
+  msg('Alles opgeslagen');
+  markErrors();
 }
 function collect() {
   const out = {};
@@ -277,7 +385,7 @@ function collect() {
   out.captionFields = [...document.querySelectorAll('#captionFields input:checked')].map(c => c.value);
   return out;
 }
-function dirty() { msg('Niet opgeslagen wijzigingen'); }
+function dirty() { msg('Niet opgeslagen wijzigingen', 'dirty'); }
 document.addEventListener('input', e => { if (e.target.closest('#app')) dirty(); });
 
 async function save(reset) {
@@ -295,6 +403,7 @@ async function save(reset) {
         if (target) target.textContent = m;
       }
       msg('Controleer de gemarkeerde velden', 'bad');
+      markErrors();
     } else msg(e.message, 'bad');
   }
 }
@@ -328,10 +437,37 @@ $('loginForm').onsubmit = async e => {
 };
 
 async function start() {
-  try { fill(await api('settings')); show('app'); }
+  try { fill(await api('settings')); show('app'); showPane(location.hash.slice(1)); }
   catch { show('login'); }
 }
 window.addEventListener('beforeunload', e => { if ($('msg').textContent === 'Niet opgeslagen wijzigingen') e.preventDefault(); });
+/* ---- sidebar navigation ---- */
+const PANES = [...document.querySelectorAll('.pane')].map(p => p.dataset.pane);
+function showPane(name) {
+  if (!PANES.includes(name)) name = PANES[0];
+  document.querySelectorAll('.pane').forEach(p => (p.hidden = p.dataset.pane !== name));
+  document.querySelectorAll('.nav').forEach(n => {
+    const on = n.dataset.nav === name;
+    n.classList.toggle('on', on);
+    if (on) { n.setAttribute('aria-current', 'page'); n.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+    else n.removeAttribute('aria-current');
+  });
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => showPane(location.hash.slice(1)));
+showPane(location.hash.slice(1));
+// red dot on menu items whose page holds an error after saving
+function markErrors() {
+  let first = null;
+  document.querySelectorAll('.pane').forEach(p => {
+    const bad = [...p.querySelectorAll('.err')].some(e => e.textContent.trim());
+    document.querySelector(`.nav[data-nav="${p.dataset.pane}"]`).classList.toggle('has-err', bad);
+    if (bad && !first) first = p.dataset.pane;
+  });
+  const current = location.hash.slice(1) || PANES[0];
+  if (first && !document.querySelector(`.nav[data-nav="${current}"]`).classList.contains('has-err')) location.hash = first;
+}
+
 /* ---- opened from the frame (hidden button): way back + auto logout ---- */
 const KIOSK = new URLSearchParams(location.search).has('kiosk');
 async function backToFrame() {
