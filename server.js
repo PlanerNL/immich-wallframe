@@ -17,6 +17,44 @@ function parseCalendars(s) {
   });
 }
 
+// ---------- fonts that can be chosen per block (Google Fonts spec, or null for a local font) ----------
+const FONTS = {
+  'Bricolage Grotesque': 'Bricolage+Grotesque:opsz,wght@12..96,300..700',
+  'Figtree': 'Figtree:wght@300..700',
+  'Inter': 'Inter:wght@300..700',
+  'Roboto': 'Roboto:wght@300;400;500;700',
+  'Open Sans': 'Open+Sans:wght@300..700',
+  'Lato': 'Lato:wght@300;400;700',
+  'Montserrat': 'Montserrat:wght@300..700',
+  'Poppins': 'Poppins:wght@300;400;500;600;700',
+  'Nunito': 'Nunito:wght@300..700',
+  'Outfit': 'Outfit:wght@300..700',
+  'Manrope': 'Manrope:wght@300..700',
+  'Space Grotesk': 'Space+Grotesk:wght@300..700',
+  'Quicksand': 'Quicksand:wght@300..700',
+  'Comfortaa': 'Comfortaa:wght@300..700',
+  'Raleway': 'Raleway:wght@300..700',
+  'Oswald': 'Oswald:wght@300..700',
+  'Bebas Neue': 'Bebas+Neue',
+  'Playfair Display': 'Playfair+Display:wght@400..700',
+  'Fraunces': 'Fraunces:opsz,wght@9..144,300..700',
+  'Lora': 'Lora:wght@400..700',
+  'Merriweather': 'Merriweather:wght@300;400;700',
+  'DM Serif Display': 'DM+Serif+Display',
+  'Caveat': 'Caveat:wght@400..700',
+  'JetBrains Mono': 'JetBrains+Mono:wght@300..700',
+  'Systeemlettertype': null,
+  'Georgia': null,
+};
+const FONT_BLOCKS = { fontClock: 'clock', fontDate: 'date', fontWeather: 'weather', fontForecast: 'forecast',
+                      fontAgendaDays: 'agendaDays', fontAgenda: 'agenda', fontCaption: 'caption' };
+const fontCss = name => name === 'Systeemlettertype' ? 'system-ui, sans-serif'
+  : name === 'Georgia' ? 'Georgia, serif' : `'${name}', system-ui, sans-serif`;
+const fontUrl = names => {
+  const specs = [...new Set(names)].map(n => FONTS[n]).filter(Boolean);
+  return specs.length ? `https://fonts.googleapis.com/css2?${specs.map(f => `family=${f}`).join('&')}&display=swap` : '';
+};
+
 // ---------- settings: defaults < environment < settings.json (admin page) ----------
 const FIELDS = {
   immichUrl:       { env: 'IMMICH_URL', type: 'url', def: '' },
@@ -36,6 +74,23 @@ const FIELDS = {
   nightEnd:        { env: 'NIGHT_END', type: 'time', def: '' },
   nightMode:       { env: 'NIGHT_MODE', type: 'enum', options: ['black', 'clock'], def: 'black' },
   wakeMinutes:     { env: 'NIGHT_WAKE_MINUTES', type: 'int', min: 1, max: 120, def: 2 },
+  forecastDays:    { env: 'FORECAST_DAYS', type: 'int', min: 1, max: 14, def: 5 },
+  showEmptyDays:   { env: 'SHOW_EMPTY_DAYS', type: 'bool', def: false },
+  adminButton:     { env: 'ADMIN_BUTTON', type: 'bool', def: true },
+  fontClock:       { env: 'FONT_CLOCK', type: 'font', def: '' },
+  fontDate:        { env: 'FONT_DATE', type: 'font', def: '' },
+  fontWeather:     { env: 'FONT_WEATHER', type: 'font', def: '' },
+  fontForecast:    { env: 'FONT_FORECAST', type: 'font', def: '' },
+  fontAgendaDays:  { env: 'FONT_AGENDA_DAYS', type: 'font', def: '' },
+  fontAgenda:      { env: 'FONT_AGENDA', type: 'font', def: '' },
+  fontCaption:     { env: 'FONT_CAPTION', type: 'font', def: '' },
+  sizeClock:      { env: 'SIZE_CLOCK', type: 'int', min: 50, max: 250, def: 100 },
+  sizeDate:       { env: 'SIZE_DATE', type: 'int', min: 50, max: 250, def: 100 },
+  sizeWeather:    { env: 'SIZE_WEATHER', type: 'int', min: 50, max: 250, def: 100 },
+  sizeForecast:   { env: 'SIZE_FORECAST', type: 'int', min: 50, max: 250, def: 100 },
+  sizeAgendaDays: { env: 'SIZE_AGENDA_DAYS', type: 'int', min: 50, max: 250, def: 100 },
+  sizeAgenda:     { env: 'SIZE_AGENDA', type: 'int', min: 50, max: 250, def: 100 },
+  sizeCaption:    { env: 'SIZE_CAPTION', type: 'int', min: 50, max: 250, def: 100 },
   wastePostcode:   { env: 'WASTE_POSTCODE', type: 'postcode', def: '' },
   wasteHouseNumber:{ env: 'WASTE_HOUSE_NUMBER', type: 'housenr', def: '' },
   wasteHouseLetter:{ env: 'WASTE_HOUSE_LETTER', type: 'short', def: '' },
@@ -57,6 +112,11 @@ function normalize(key, v) {
       return f.type === 'url' ? t.replace(/\/+$/, '') : t;
     }
     case 'list': return list(v);
+    case 'font': {
+      const t = String(v ?? '').trim();
+      if (t && !(t in FONTS)) throw new Error('onbekend lettertype');
+      return t;
+    }
     case 'postcode': {
       const t = String(v ?? '').replace(/\s+/g, '').toUpperCase();
       if (t && !/^\d{4}[A-Z]{2}$/.test(t)) throw new Error('postcode als 1234AB');
@@ -156,7 +216,8 @@ async function readBody(req) {
 function adminView() {
   const out = {};
   for (const key of Object.keys(FIELDS)) out[key] = FIELDS[key].type === 'secret' ? '' : cfg[key];
-  return { values: out, hasKey: !!cfg.immichKey, source, fields: Object.fromEntries(Object.entries(FIELDS).map(([k, f]) => [k, { env: f.env, type: f.type, options: f.options, min: f.min, max: f.max }])) };
+  return { values: out, hasKey: !!cfg.immichKey, source,
+    fonts: Object.keys(FONTS).map(n => ({ name: n, css: fontCss(n) })), fontUrl: fontUrl(Object.keys(FONTS)), fields: Object.fromEntries(Object.entries(FIELDS).map(([k, f]) => [k, { env: f.env, type: f.type, options: f.options, min: f.min, max: f.max }])) };
 }
 
 const cache = new Map();
@@ -429,7 +490,7 @@ async function agenda() {
 // ---------- Weather (Open-Meteo, no key needed) ----------
 async function weather() {
   const q = new URLSearchParams({
-    latitude: String(cfg.lat), longitude: String(cfg.lon), timezone: 'auto', forecast_days: '6',
+    latitude: String(cfg.lat), longitude: String(cfg.lon), timezone: 'auto', forecast_days: String(cfg.forecastDays + 1),
     current: 'temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
   });
@@ -501,6 +562,11 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { version: cfg.version,
         locale: cfg.locale, photoInterval: cfg.photoInterval, progressBar: cfg.progressBar, calendarDays: cfg.calendarDays,
         nightStart: cfg.nightStart, nightEnd: cfg.nightEnd, nightMode: cfg.nightMode, wakeMinutes: cfg.wakeMinutes,
+        forecastDays: cfg.forecastDays, showEmptyDays: cfg.showEmptyDays,
+        adminButton: cfg.adminButton && !!ADMIN_PASSWORD,
+        sizes: Object.fromEntries(Object.entries(FONT_BLOCKS).map(([k, b]) => [b, cfg['size' + k.slice(4)] / 100])),
+        fonts: Object.fromEntries(Object.entries(FONT_BLOCKS).filter(([k]) => cfg[k]).map(([k, b]) => [b, fontCss(cfg[k])])),
+        fontUrl: fontUrl(Object.keys(FONT_BLOCKS).map(k => cfg[k]).filter(Boolean)),
       });
     }
     if (p === '/api/photo/next') return json(res, 200, await nextPhoto());

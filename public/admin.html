@@ -42,6 +42,12 @@
   .checks label { display: flex; gap: 8px; align-items: center; }
   .checks input[type=checkbox] { margin: 6px 0; }
   .pair3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+  .fontrow { display: grid; grid-template-columns: 1fr 104px; gap: 10px; }
+  .fontrow .size { display: flex; align-items: center; gap: 6px; }
+  .fontrow .size input { text-align: right; }
+  .fprev { margin-top: 6px; font-size: 20px; color: var(--ink); }
+  .kiosk-back { display: none; }
+  body.kiosk .kiosk-back { display: inline-block; }
   .cal { display: grid; grid-template-columns: 44px 150px 1fr auto; gap: 8px; margin-bottom: 8px; }
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: rgb(28 33 39 / .95); border-top: 1px solid var(--line); padding: 12px 20px; }
   .bar div { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
@@ -70,6 +76,7 @@
       <label for="pw">Wachtwoord</label>
       <input id="pw" type="password" autocomplete="current-password" required style="margin:8px 0 14px">
       <button class="primary" type="submit">Inloggen</button>
+      <button class="kiosk-back" type="button" data-back>Terug naar fotolijst</button>
       <p class="err" id="loginErr"></p>
     </form>
   </section>
@@ -78,7 +85,7 @@
 <main id="app" hidden>
   <div class="top">
     <div><h1>Fotolijst beheren</h1><p class="sub">Wijzigingen zijn direct actief; het scherm laadt binnen een minuut opnieuw.</p></div>
-    <button id="logout" type="button">Uitloggen</button>
+    <div style="display:flex;gap:8px"><button class="kiosk-back" type="button" data-back>Terug naar fotolijst</button><button id="logout" type="button">Uitloggen</button></div>
   </div>
 
   <section>
@@ -109,6 +116,7 @@
     <div class="err" data-err="calendars"></div>
     <div class="src" data-src="calendars"></div>
     <div class="row" style="margin-top:14px"><label for="calendarDays">Dagen vooruit</label><div><input id="calendarDays" type="number" min="1" max="60"></div></div>
+    <div class="row"><label for="showEmptyDays">Lege dagen tonen</label><div><input id="showEmptyDays" type="checkbox"><div class="hint">Ook dagen zonder afspraken, met "Niets gepland".</div></div></div>
     <div class="row"><label for="calendarRefresh">Verversen (minuten)</label><div><input id="calendarRefresh" type="number" min="1" max="1440"></div></div>
   </section>
 
@@ -128,6 +136,7 @@
       <div class="pair"><input id="lat" inputmode="decimal" placeholder="Breedtegraad" aria-label="Breedtegraad"><input id="lon" inputmode="decimal" placeholder="Lengtegraad" aria-label="Lengtegraad"></div>
       <div class="err" data-err="lon"></div><div class="src" data-src="lon"></div>
       <div class="hint">Tip: klik met rechts op een plek in Google Maps om de coördinaten te kopiëren.</div></div></div>
+    <div class="row"><label for="forecastDays">Dagen voorspelling</label><div><input id="forecastDays" type="number" min="1" max="14"><div class="hint">1 tot 14 dagen. Meer dagen laat minder ruimte over voor de agenda.</div></div></div>
   </section>
 
   <section>
@@ -141,8 +150,21 @@
   </section>
 
   <section>
+    <h2>Lettertypes</h2>
+    <p class="hint" style="margin-top:0">Kies per onderdeel een lettertype en een grootte (100% = oorspronkelijk, 50 tot 250%). "Standaard" is het oorspronkelijke lettertype.</p>
+    <div class="row"><label for="fontClock">Tijd</label><div><div class="fontrow"><select id="fontClock" class="fontsel"></select><label class="size"><input id="sizeClock" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontClock">18:42</div></div></div>
+    <div class="row"><label for="fontDate">Datum</label><div><div class="fontrow"><select id="fontDate" class="fontsel"></select><label class="size"><input id="sizeDate" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontDate">Vrijdag 23 oktober</div></div></div>
+    <div class="row"><label for="fontWeather">Huidige weer</label><div><div class="fontrow"><select id="fontWeather" class="fontsel"></select><label class="size"><input id="sizeWeather" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontWeather">17° voelt als 15°</div></div></div>
+    <div class="row"><label for="fontForecast">Weersvoorspelling</label><div><div class="fontrow"><select id="fontForecast" class="fontsel"></select><label class="size"><input id="sizeForecast" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontForecast">za 9° – 14° 80%</div></div></div>
+    <div class="row"><label for="fontAgendaDays">Agenda: dagen</label><div><div class="fontrow"><select id="fontAgendaDays" class="fontsel"></select><label class="size"><input id="sizeAgendaDays" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgendaDays">Morgen · 24 okt</div></div></div>
+    <div class="row"><label for="fontAgenda">Agenda: afspraken</label><div><div class="fontrow"><select id="fontAgenda" class="fontsel"></select><label class="size"><input id="sizeAgenda" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontAgenda">09:30 Zwemles</div></div></div>
+    <div class="row"><label for="fontCaption">Info bij de foto</label><div><div class="fontrow"><select id="fontCaption" class="fontsel"></select><label class="size"><input id="sizeCaption" type="number" min="50" max="250" step="5" aria-label="Lettergrootte in procent"><span>%</span></label></div><div class="fprev" data-for="fontCaption">zondag 18 juli 2021</div></div></div>
+  </section>
+
+  <section>
     <h2>Weergave</h2>
     <div class="row"><label for="locale">Taal en datumnotatie</label><div><select id="locale"><option value="nl-NL">Nederlands</option><option value="nl-BE">Nederlands (België)</option><option value="en-GB">English (UK)</option><option value="en-US">English (US)</option><option value="de-DE">Deutsch</option></select></div></div>
+    <div class="row"><label for="adminButton">Verborgen knop</label><div><input id="adminButton" type="checkbox"><div class="hint">Houd de rechterbovenhoek van de fotolijst 2 seconden ingedrukt om deze pagina te openen. Inloggen gaat met het wachtwoord uit <code>ADMIN_PASSWORD</code>; na 5 minuten zonder activiteit gaat het scherm terug naar de fotolijst en log je automatisch uit.</div></div></div>
   </section>
 
   <section>
@@ -163,7 +185,8 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SIMPLE = ['immichUrl', 'immichKey', 'albumIds', 'favoritesOnly', 'imageSize', 'photoInterval', 'progressBar', 'placeNamesOsm', 'calendarDays', 'calendarRefresh',
-                'wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter', 'wasteShowNext', 'wasteBannerFrom', 'wasteInAgenda', 'lat', 'lon', 'nightStart', 'nightEnd', 'nightMode', 'wakeMinutes', 'locale'];
+                'wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter', 'wasteShowNext', 'wasteBannerFrom', 'wasteInAgenda', 'lat', 'lon', 'nightStart', 'nightEnd', 'nightMode', 'wakeMinutes', 'locale',
+                'forecastDays', 'showEmptyDays', 'adminButton', 'sizeClock', 'sizeDate', 'sizeWeather', 'sizeForecast', 'sizeAgendaDays', 'sizeAgenda', 'sizeCaption', 'fontClock', 'fontDate', 'fontWeather', 'fontForecast', 'fontAgendaDays', 'fontAgenda', 'fontCaption'];
 const SRC = { standaard: 'standaardwaarde', omgeving: 'uit de containerinstellingen', beheerpagina: 'ingesteld op deze pagina' };
 let state = null;
 
@@ -195,13 +218,37 @@ const readCals = () => [...$('calendars').children].map(d => {
 });
 
 /* ---- form ---- */
+let fontsLoaded = false;
+function setupFonts(s) {
+  if (!fontsLoaded && s.fontUrl) {
+    document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: s.fontUrl }));
+    fontsLoaded = true;
+  }
+  const css = Object.fromEntries((s.fonts || []).map(f => [f.name, f.css]));
+  document.querySelectorAll('.fontsel').forEach(sel => {
+    if (!sel.options.length) {
+      sel.innerHTML = '<option value="">Standaard</option>' + (s.fonts || []).map(f => `<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('');
+      sel.addEventListener('change', () => preview(sel));
+      $('size' + sel.id.slice(4)).addEventListener('input', () => preview(sel));
+    }
+  });
+  window.__fontCss = css;
+}
+function preview(sel) {
+  const p = document.querySelector(`.fprev[data-for="${sel.id}"]`);
+  p.style.fontFamily = sel.value ? window.__fontCss[sel.value] : '';
+  const sz = Number($('size' + sel.id.slice(4)).value) || 100;
+  p.style.fontSize = `${Math.round(20 * sz / 100)}px`;
+}
 function fill(s) {
   state = s;
+  setupFonts(s);
   for (const k of SIMPLE) {
     const el = $(k), v = s.values[k];
     if (el.type === 'checkbox') el.checked = !!v;
     else el.value = Array.isArray(v) ? v.join(', ') : v ?? '';
   }
+  document.querySelectorAll('.fontsel').forEach(preview);
   $('keyHint').textContent = s.hasKey ? 'Er is een sleutel ingesteld. Laat leeg om hem te houden.' : 'Nog geen sleutel ingesteld.';
   document.querySelectorAll('#captionFields input').forEach(c => (c.checked = s.values.captionFields.includes(c.value)));
   $('calendars').innerHTML = '';
@@ -209,12 +256,12 @@ function fill(s) {
   document.querySelectorAll('.err').forEach(e => (e.textContent = ''));
   // show where each value comes from, with a reset for values set on this page
   document.querySelectorAll('.src').forEach(e => e.remove());
-  const keys = [...SIMPLE, 'calendars', 'captionFields'].filter(k => !['lat', 'nightStart', 'wasteHouseNumber', 'wasteHouseLetter'].includes(k));
+  const keys = [...SIMPLE, 'calendars', 'captionFields'].filter(k => !['lat', 'nightStart', 'wasteHouseNumber', 'wasteHouseLetter'].includes(k) && !k.startsWith('size'));
   for (const k of keys) {
-    const host = k === 'captionFields' ? $('captionFields').parentElement : k === 'calendars' ? $('addCal').parentElement : k === 'lon' || k === 'nightEnd' || k === 'wastePostcode' ? $(k).closest('.row > div') : $(k).parentElement;
+    const host = k.startsWith('font') ? $(k).closest('.row > div') : k === 'captionFields' ? $('captionFields').parentElement : k === 'calendars' ? $('addCal').parentElement : k === 'lon' || k === 'nightEnd' || k === 'wastePostcode' ? $(k).closest('.row > div') : $(k).parentElement;
     const src = document.createElement('div');
     src.className = 'src';
-    const pairKeys = k === 'wastePostcode' ? ['wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter'] : k === 'lon' ? ['lat', 'lon'] : k === 'nightEnd' ? ['nightStart', 'nightEnd'] : [k];
+    const pairKeys = k.startsWith('font') ? [k, 'size' + k.slice(4)] : k === 'wastePostcode' ? ['wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter'] : k === 'lon' ? ['lat', 'lon'] : k === 'nightEnd' ? ['nightStart', 'nightEnd'] : [k];
     const fromPage = pairKeys.some(x => s.source[x] === 'beheerpagina');
     src.innerHTML = `${SRC[s.source[k]] || ''}${fromPage ? ' · <button type="button">terugzetten</button>' : ''}`;
     if (fromPage) src.querySelector('button').onclick = () => save(pairKeys);
@@ -244,7 +291,7 @@ async function save(reset) {
     const errs = e.data?.errors;
     if (errs) {
       for (const [k, m] of Object.entries(errs)) {
-        const target = document.querySelector(`[data-err="${k === 'lat' ? 'lon' : k === 'nightStart' ? 'nightEnd' : k.startsWith('wasteHouse') ? 'wastePostcode' : k}"]`);
+        const target = document.querySelector(`[data-err="${k === 'lat' ? 'lon' : k === 'nightStart' ? 'nightEnd' : k.startsWith('wasteHouse') ? 'wastePostcode' : k.startsWith('size') ? 'font' + k.slice(4) : k}"]`);
         if (target) target.textContent = m;
       }
       msg('Controleer de gemarkeerde velden', 'bad');
@@ -285,6 +332,20 @@ async function start() {
   catch { show('login'); }
 }
 window.addEventListener('beforeunload', e => { if ($('msg').textContent === 'Niet opgeslagen wijzigingen') e.preventDefault(); });
+/* ---- opened from the frame (hidden button): way back + auto logout ---- */
+const KIOSK = new URLSearchParams(location.search).has('kiosk');
+async function backToFrame() {
+  await api('logout', {}).catch(() => {});
+  location.href = '../';
+}
+if (KIOSK) {
+  document.body.classList.add('kiosk');
+  document.querySelectorAll('[data-back]').forEach(b => (b.onclick = backToFrame));
+  let idle;
+  const reset = () => { clearTimeout(idle); idle = setTimeout(backToFrame, 5 * 60e3); };
+  for (const ev of ['pointerdown', 'keydown', 'input', 'scroll']) document.addEventListener(ev, reset, { passive: true });
+  reset();
+}
 start();
 </script>
 </body>

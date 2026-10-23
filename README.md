@@ -26,6 +26,8 @@ A wall-mounted photo frame for [Immich](https://immich.app), with a side panel f
 **Living with it**
 - Night mode on a schedule: black screen or a dimmed, slowly drifting clock; tap to wake
 - Admin page to change every setting in the browser, with a connection test
+- Choose a font and text size per block (clock, date, weather, forecast, agenda, caption)
+- Hidden, password-protected button on the frame that opens the admin page
 - Landscape and portrait screens
 - Optional Android app for tablets (fullscreen, starts at boot, dims the backlight at night)
 
@@ -107,13 +109,18 @@ Everything can be set on the admin page; settings saved there are stored in `dat
 | `PLACE_NAMES_OSM` | `true` | Translate place names via OpenStreetMap (sends the photo's GPS position) |
 | `CALENDARS` | – | `Name\|#colour\|url`, separated by `;`. `webcal://` is accepted |
 | `CALENDAR_DAYS` | `10` | Days ahead in the agenda |
+| `SHOW_EMPTY_DAYS` | `false` | Also show days without appointments ("Niets gepland") |
 | `CALENDAR_REFRESH` | `5` | Minutes between calendar refreshes |
 | `LATITUDE` / `LONGITUDE` | Amsterdam | Location for the weather |
+| `FORECAST_DAYS` | `5` | Number of forecast days (1–14) |
 | `LOCALE` | `nl-NL` | Language and date format (`nl-NL`, `nl-BE`, `en-GB`, `en-US`, `de-DE`) |
 | `WASTE_POSTCODE` / `WASTE_HOUSE_NUMBER` / `WASTE_HOUSE_LETTER` | – | Address for Twente Milieu pickups. Empty = off |
 | `WASTE_SHOW_NEXT` | `true` | Next pickup next to the current weather |
 | `WASTE_BANNER_FROM` | `17:00` | From when the evening before the pickup is highlighted |
 | `WASTE_IN_AGENDA` | `true` | Pickups in the agenda |
+| `ADMIN_BUTTON` | `true` | Invisible button: hold the top-right corner of the frame for 2 s to open the admin page (needs `ADMIN_PASSWORD`). Opened this way, it logs out after 5 minutes of inactivity |
+| `FONT_CLOCK`, `FONT_DATE`, `FONT_WEATHER`, `FONT_FORECAST`, `FONT_AGENDA_DAYS`, `FONT_AGENDA`, `FONT_CAPTION` | default | Font per block, e.g. `Oswald`. Choose from the list on the admin page |
+| `SIZE_CLOCK`, `SIZE_DATE`, `SIZE_WEATHER`, `SIZE_FORECAST`, `SIZE_AGENDA_DAYS`, `SIZE_AGENDA`, `SIZE_CAPTION` | `100` | Text size per block in percent (50–250) |
 | `NIGHT_START` / `NIGHT_END` | – | Night mode, e.g. `23:00` and `07:00`. Empty = off |
 | `NIGHT_MODE` | `black` | `black` or `clock` |
 | `NIGHT_WAKE_MINUTES` | `2` | How long a tap wakes the frame at night |

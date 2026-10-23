@@ -33,8 +33,8 @@
   .slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   .stage::after { content: ''; position: absolute; left: 0; bottom: 0; width: 60%; height: 40%; pointer-events: none;
                   background: radial-gradient(ellipse at 0 100%, rgb(0 0 0 / .55), transparent 70%); }
-  .caption { position: absolute; z-index: 1; left: calc(var(--u) * 3.5); bottom: calc(var(--u) * 3); max-width: 55%;
-             font-size: calc(var(--u) * 2.1); line-height: 1.45; color: var(--muted); text-shadow: 0 1px 6px rgb(0 0 0 / .7); }
+  .caption { font-family: var(--f-caption, var(--body)); position: absolute; z-index: 1; left: calc(var(--u) * 3.5 * var(--s-caption, 1)); bottom: calc(var(--u) * 3 * var(--s-caption, 1)); max-width: 55%;
+             font-size: calc(var(--u) * 2.1 * var(--s-caption, 1)); line-height: 1.45; color: var(--muted); text-shadow: 0 1px 6px rgb(0 0 0 / .7); }
   .caption .when { color: var(--ink); font-weight: 600; font-size: 1.15em; }
   .caption .ago { margin-left: .5em; }
   .caption .line { display: flex; gap: .5em; align-items: center; }
@@ -62,8 +62,8 @@
     padding: calc(var(--u) * 4.5) calc(var(--u) * 4) calc(var(--u) * 3);
     min-height: 0;
   }
-  .clock { font-family: var(--display); font-weight: 300; font-size: calc(var(--u) * 13); line-height: .9; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-  .today { margin-top: calc(var(--u) * 1.2); font-size: calc(var(--u) * 2.6); color: var(--muted); }
+  .clock { font-family: var(--f-clock, var(--display)); font-weight: 300; font-size: calc(var(--u) * 13 * var(--s-clock, 1)); line-height: .9; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .today { font-family: var(--f-date, var(--body)); margin-top: calc(var(--u) * 1.2 * var(--s-date, 1)); font-size: calc(var(--u) * 2.6 * var(--s-date, 1)); color: var(--muted); }
   .today::first-letter { text-transform: uppercase; }
 
   /* weather */
@@ -79,12 +79,12 @@
   .waste .wnames { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.5); line-height: 1.15; }
   .waste.urgent .wlabel { color: color-mix(in oklab, var(--wc) 55%, white); font-weight: 600; }
   .now { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 2); }
-  .now svg { width: calc(var(--u) * 7); height: calc(var(--u) * 7); }
-  .now .t { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 6); line-height: 1; }
-  .now .d { font-size: calc(var(--u) * 1.9); color: var(--muted); line-height: 1.4; }
-  .days { display: grid; grid-template-columns: auto auto 1fr auto auto; column-gap: calc(var(--u) * 1.6); row-gap: calc(var(--u) * 1.1); align-items: center; margin-top: calc(var(--u) * 2.2); font-size: calc(var(--u) * 2.1); }
+  .now svg { width: calc(var(--u) * 7 * var(--s-weather, 1)); height: calc(var(--u) * 7 * var(--s-weather, 1)); }
+  .now .t { font-family: var(--f-weather, var(--display)); font-weight: 600; font-size: calc(var(--u) * 6 * var(--s-weather, 1)); line-height: 1; }
+  .now .d { font-family: var(--f-weather, var(--body)); font-size: calc(var(--u) * 1.9 * var(--s-weather, 1)); color: var(--muted); line-height: 1.4; }
+  .days { font-family: var(--f-forecast, var(--body)); display: grid; grid-template-columns: auto auto 1fr auto auto; column-gap: calc(var(--u) * 1.6 * var(--s-forecast, 1)); row-gap: calc(var(--u) * 1.1 * var(--s-forecast, 1)); align-items: center; margin-top: calc(var(--u) * 2.2 * var(--s-forecast, 1)); font-size: calc(var(--u) * 2.1 * var(--s-forecast, 1)); }
   .days .n { font-weight: 600; min-width: 2.4em; }
-  .days svg { width: calc(var(--u) * 3.2); height: calc(var(--u) * 3.2); }
+  .days svg { width: calc(var(--u) * 3.2 * var(--s-forecast, 1)); height: calc(var(--u) * 3.2 * var(--s-forecast, 1)); }
   .range { display: grid; grid-template-columns: 2.2em 1fr 2.2em; align-items: center; gap: .5em; font-variant-numeric: tabular-nums; }
   .range .lo { color: var(--muted); text-align: right; }
   .track { position: relative; height: calc(var(--u) * .7); border-radius: 99px; background: var(--faint); }
@@ -105,11 +105,11 @@
   .agenda.more-below { mask-image: linear-gradient(#000 85%, transparent); }
   .agenda.more-above { mask-image: linear-gradient(transparent, #000 10%); }
   .agenda.more-above.more-below { mask-image: linear-gradient(transparent, #000 10%, #000 85%, transparent); }
-  .day { display: grid; grid-template-columns: calc(var(--u) * 11) 1fr; gap: calc(var(--u) * 1.5); padding-bottom: calc(var(--u) * 1.6); }
-  .day h3 { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.1); line-height: 1.35; }
-  .day h3 small { display: block; font-family: var(--body); font-weight: 400; color: var(--muted); font-size: .85em; }
+  .day { display: grid; grid-template-columns: calc(var(--u) * 11 * var(--s-agendaDays, 1)) 1fr; gap: calc(var(--u) * 1.5 * var(--s-agendaDays, 1)); padding-bottom: calc(var(--u) * 1.6 * var(--s-agendaDays, 1)); }
+  .day h3 { font-family: var(--f-agendaDays, var(--display)); font-weight: 600; font-size: calc(var(--u) * 2.1 * var(--s-agendaDays, 1)); line-height: 1.35; }
+  .day h3 small { display: block; font-family: var(--f-agendaDays, var(--body)); font-weight: 400; color: var(--muted); font-size: .85em; }
   .day.is-today h3 { color: rgb(var(--tint-light, 255 214 150)); }
-  .ev { display: grid; grid-template-columns: calc(var(--u) * .9) 3.1em 1fr; gap: calc(var(--u) * 1); align-items: baseline; font-size: calc(var(--u) * 2.1); line-height: 1.35; }
+  .ev { font-family: var(--f-agenda, var(--body)); display: grid; grid-template-columns: calc(var(--u) * .9 * var(--s-agenda, 1)) 3.1em 1fr; gap: calc(var(--u) * 1 * var(--s-agenda, 1)); align-items: baseline; font-size: calc(var(--u) * 2.1 * var(--s-agenda, 1)); line-height: 1.35; }
   .ev .dot { width: calc(var(--u) * .9); height: calc(var(--u) * .9); border-radius: 50%; background: var(--c, var(--muted)); transform: translateY(-.1em); }
   /* waste: the bin sits centred on the dot column, the name lines up with the other titles */
   .ev .bin { position: relative; width: calc(var(--u) * .9); height: calc(var(--u) * .9); transform: translateY(-.1em); }
@@ -117,6 +117,7 @@
   .ev time { color: var(--muted); font-variant-numeric: tabular-nums; }
   .ev .ti { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ev.allday .ti { font-weight: 600; }
+  .agenda .empty { font-family: var(--f-agenda, var(--body)); font-size: calc(var(--u) * 2.1 * var(--s-agenda, 1)); }
   .empty { color: var(--muted); font-size: calc(var(--u) * 2.1); line-height: 1.35; }
 
   /* portrait screens: photo on top, info below in two columns */
@@ -130,6 +131,12 @@
     .agenda { margin-top: 0; padding-top: 0; }
     .weather { border-bottom: 0; }
   }
+  /* invisible admin button: hold the top-right corner */
+  .admin-hot { position: fixed; z-index: 20; top: 0; right: 0; width: calc(var(--u) * 11); height: calc(var(--u) * 11);
+               -webkit-tap-highlight-color: transparent; touch-action: none; user-select: none; }
+  .admin-hot::after { content: ''; position: absolute; top: 30%; right: 30%; width: 40%; aspect-ratio: 1; border-radius: 50%;
+                      border: 2px solid rgb(244 243 239 / .7); opacity: 0; scale: .3; }
+  .admin-hot.pressing::after { opacity: 1; scale: 1; transition: scale var(--hold, 2s) linear, opacity .3s; }
   /* night mode */
   .night { position: fixed; inset: 0; z-index: 10; background: #000; opacity: 0; pointer-events: none; transition: opacity 4s ease; }
   .night.on { opacity: 1; pointer-events: auto; }
@@ -164,11 +171,12 @@
     </div>
   </aside>
 </main>
+<div class="admin-hot" id="adminHot" hidden aria-hidden="true"></div>
 <div class="night" id="night"><div class="nclock" id="nclock" hidden></div></div>
 
 <script>
 const $ = id => document.getElementById(id);
-let cfg = { progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
+let cfg = { forecastDays: 5, showEmptyDays: false, adminButton: false, fonts: {}, fontUrl: '', progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
 const T = {
   nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m' },
   en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until' },
@@ -411,7 +419,8 @@ async function loadWeather() {
   try {
     const w = await getJSON('api/weather');
     const c = w.current, d = w.daily;
-    const idx = [1, 2, 3, 4, 5];                     // the next five days (index 0 is today)
+    const n = Math.min(cfg.forecastDays || 5, d.time.length - 1);
+    const idx = Array.from({ length: n }, (_, i) => i + 1);   // the coming days (index 0 is today)
     const lo = Math.min(...idx.map(i => d.temperature_2m_min[i])), hi = Math.max(...idx.map(i => d.temperature_2m_max[i]));
     const span = Math.max(hi - lo, 1);
     const rows = idx.map(i => {
@@ -518,7 +527,7 @@ async function loadAgenda() {
     let html = '';
     for (const [k, day] of byDay) {
       const isToday = k === dayKey(start);
-      if (!day.items.length && !isToday) continue;       // skip empty days to fit more
+      if (!day.items.length && !isToday && !cfg.showEmptyDays) continue;   // skip empty days to fit more
       const label = isToday ? t('today') : k === dayKey(tomorrow) ? t('tomorrow')
         : day.date.toLocaleDateString(cfg.locale, { weekday: 'short' }).replace('.', '');
       const sub = day.date.toLocaleDateString(cfg.locale, { day: 'numeric', month: 'short' }).replace('.', '');
@@ -539,10 +548,39 @@ async function loadAgenda() {
   }
 }
 
+/* ---------- fonts ---------- */
+function applyFonts() {
+  if (cfg.fontUrl) {
+    const l = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: cfg.fontUrl });
+    document.head.append(l);
+  }
+  for (const [block, css] of Object.entries(cfg.fonts || {})) document.documentElement.style.setProperty(`--f-${block}`, css);
+  for (const [block, f] of Object.entries(cfg.sizes || {})) if (f && f !== 1) document.documentElement.style.setProperty(`--s-${block}`, f);
+}
+
+/* ---------- hidden admin button: hold the top-right corner for 2 seconds ---------- */
+function setupAdminButton() {
+  const el = $('adminHot');
+  if (!cfg.adminButton) return;
+  el.hidden = false;
+  let timer = null;
+  const cancel = () => { clearTimeout(timer); el.classList.remove('pressing'); };
+  el.addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('pressing');
+    timer = setTimeout(() => { cancel(); location.href = 'admin/?kiosk=1'; }, 2000);
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, cancel);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+
 /* ---------- boot ---------- */
 (async () => {
   try { cfg = { ...cfg, ...(await getJSON('api/config')) }; } catch {}
   document.documentElement.lang = cfg.locale.slice(0, 2);
+  applyFonts();
+  setupAdminButton();
   tick(); updateNight(); setInterval(() => { tick(); updateNight(); }, 5000);
   nextPhoto(true);
   loadWeather(); setInterval(loadWeather, 15 * 60e3);
