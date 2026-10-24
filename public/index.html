@@ -69,14 +69,14 @@
   /* weather */
   .toprow { display: flex; align-items: center; gap: calc(var(--u) * 2); }
   /* next waste pickup, styled like the current weather next to it */
-  .waste { --wc: #8e979f; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--u) * .6);
-           padding-left: calc(var(--u) * 2.2); border-left: 1px solid var(--faint); }
+  .waste { --wc: #8e979f; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--u) * .6 * var(--s-weather, 1));
+           padding-left: calc(var(--u) * 2.2 * var(--s-weather, 1)); border-left: 1px solid var(--faint); }
   .waste .wtop { display: flex; align-items: center; gap: calc(var(--u) * 1); }
   .waste .bins { display: flex; flex: none; }
-  .waste .bins svg { width: calc(var(--u) * 3.4); height: calc(var(--u) * 3.4); }
-  .waste .bins svg + svg { margin-left: calc(var(--u) * -.9); }
-  .waste .wlabel { font-size: calc(var(--u) * 1.9); color: var(--muted); line-height: 1.2; }
-  .waste .wnames { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.5); line-height: 1.15; }
+  .waste .bins svg { width: calc(var(--u) * 3.4 * var(--s-weather, 1)); height: calc(var(--u) * 3.4 * var(--s-weather, 1)); }
+  .waste .bins svg + svg { margin-left: calc(var(--u) * -.9 * var(--s-weather, 1)); }
+  .waste .wlabel { font-size: calc(var(--u) * 1.9 * var(--s-weather, 1)); color: var(--muted); line-height: 1.2; }
+  .waste .wnames { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.5 * var(--s-weather, 1)); line-height: 1.15; }
   .waste.urgent .wlabel { color: color-mix(in oklab, var(--wc) 55%, white); font-weight: 600; }
   .now { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 2); }
   .now svg { width: calc(var(--u) * 7 * var(--s-weather, 1)); height: calc(var(--u) * 7 * var(--s-weather, 1)); }
@@ -110,10 +110,10 @@
   .day h3 small { display: block; font-family: var(--f-agendaDays, var(--body)); font-weight: 400; color: var(--muted); font-size: .85em; }
   .day.is-today h3 { color: rgb(var(--tint-light, 255 214 150)); }
   .ev { font-family: var(--f-agenda, var(--body)); display: grid; grid-template-columns: calc(var(--u) * .9 * var(--s-agenda, 1)) 3.1em 1fr; gap: calc(var(--u) * 1 * var(--s-agenda, 1)); align-items: baseline; font-size: calc(var(--u) * 2.1 * var(--s-agenda, 1)); line-height: 1.35; }
-  .ev .dot { width: calc(var(--u) * .9); height: calc(var(--u) * .9); border-radius: 50%; background: var(--c, var(--muted)); transform: translateY(-.1em); }
+  .ev .dot { width: calc(var(--u) * .9 * var(--s-agenda, 1)); height: calc(var(--u) * .9 * var(--s-agenda, 1)); border-radius: 50%; background: var(--c, var(--muted)); transform: translateY(-.1em); }
   /* waste: the bin sits centred on the dot column, the name lines up with the other titles */
-  .ev .bin { position: relative; width: calc(var(--u) * .9); height: calc(var(--u) * .9); transform: translateY(-.1em); }
-  .ev .bin svg { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 2); height: calc(var(--u) * 2); translate: -50% -52%; }
+  .ev .bin { position: relative; width: calc(var(--u) * .9 * var(--s-agenda, 1)); height: calc(var(--u) * .9 * var(--s-agenda, 1)); transform: translateY(-.1em); }
+  .ev .bin svg { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 2 * var(--s-agenda, 1)); height: calc(var(--u) * 2 * var(--s-agenda, 1)); translate: -50% -52%; }
   .ev time { color: var(--muted); font-variant-numeric: tabular-nums; }
   .ev .ti { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ev.allday .ti { font-weight: 600; }
