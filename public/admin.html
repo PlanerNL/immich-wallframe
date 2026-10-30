@@ -78,6 +78,22 @@
   .fontrow .size { display: flex; align-items: center; gap: 6px; }
   .fontrow .size input { text-align: right; }
   .fprev { margin-top: 6px; font-size: 20px; color: var(--ink); }
+  .albtools { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .albsum { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 13px; margin: 8px 0 6px; min-height: 20px; }
+  .albsum button { font-size: 13px; padding: 0; border: 0; background: none; color: var(--accent); text-decoration: underline; }
+  .alblist { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .alblist:empty { display: none; }
+  .alb { display: grid; grid-template-columns: 22px 44px 1fr; gap: 12px; align-items: center; padding: 8px 12px; cursor: pointer; border-top: 1px solid var(--line); }
+  .alb:first-child { border-top: 0; }
+  .alb:hover { background: rgb(255 255 255 / .03); }
+  .alb input { margin: 0; }
+  .alb .th { width: 44px; height: 44px; border-radius: 7px; object-fit: cover; background: var(--card); display: block; }
+  .alb .nm { min-width: 0; }
+  .alb .nm b { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .alb .nm small { color: var(--muted); }
+  .alb.missing .nm b { color: var(--muted); font-style: italic; }
+  .albmsg { padding: 14px; color: var(--muted); }
+  .albmsg.bad { color: var(--bad); }
   .cal { display: grid; grid-template-columns: 44px 150px 1fr auto; gap: 8px; margin-bottom: 8px; }
   .test { margin: 14px 0 0; padding-left: 20px; } .test li { margin: 4px 0; }
   .kiosk-back { display: none !important; }
@@ -165,7 +181,16 @@
       </div>
       <div class="card">
         <h3>Selectie</h3>
-        <div class="row"><label for="albumIds">Album-ID's</label><div><input id="albumIds" placeholder="leeg = hele bibliotheek"><div class="hint">Komma gescheiden. Het ID staat in de album-URL in Immich.</div></div></div>
+        <div class="row"><label for="albumSearch">Albums</label><div>
+          <input id="albumIds" type="hidden">
+          <div class="albtools">
+            <input id="albumSearch" type="search" placeholder="Zoek een album" autocomplete="off">
+            <button type="button" id="albumReload">Vernieuwen</button>
+          </div>
+          <div class="albsum" id="albumSum" role="status"></div>
+          <div class="alblist" id="albumList"></div>
+          <div class="hint">Niets aangevinkt = de hele bibliotheek. Vereist <code>album.read</code> op de API-sleutel.</div>
+        </div></div>
         <div class="row"><label for="favoritesOnly">Alleen favorieten</label><div><input id="favoritesOnly" type="checkbox"></div></div>
         <div class="row"><label for="imageSize">Beeldkwaliteit</label><div><select id="imageSize"><option value="preview">Preview (snel)</option><option value="fullsize">Volledig (scherper op 4K)</option></select></div></div>
       </div>
@@ -324,6 +349,48 @@ const readCals = () => [...$('calendars').children].map(d => {
   return { color: color.value, name: name.value, url: url.value };
 });
 
+/* ---- album picker: the hidden #albumIds field stays the single source of truth ---- */
+let albums = null;
+const selectedAlbums = () => $('albumIds').value.split(',').map(x => x.trim()).filter(Boolean);
+function setSelectedAlbums(ids) { $('albumIds').value = ids.join(', '); dirty(); renderAlbums(); }
+async function loadAlbums() {
+  $('albumList').innerHTML = '<div class="albmsg">Albums ophalen…</div>';
+  try { albums = (await api('albums')).albums; }
+  catch (e) { albums = null; $('albumList').innerHTML = `<div class="albmsg bad">${esc(e.message)}</div>`; renderSummary(); return; }
+  renderAlbums();
+}
+function renderSummary() {
+  const n = selectedAlbums().length;
+  $('albumSum').innerHTML = n ? `${n} ${n === 1 ? 'album' : 'albums'} gekozen <button type="button" id="albumClear">Alles uitvinken</button>`
+                              : 'Geen albums gekozen: de hele bibliotheek wordt getoond';
+  const c = $('albumClear'); if (c) c.onclick = () => setSelectedAlbums([]);
+}
+function renderAlbums() {
+  renderSummary();
+  if (!albums) return;
+  const sel = new Set(selectedAlbums());
+  const q = $('albumSearch').value.trim().toLowerCase();
+  // albums that are selected but no longer exist (or aren't visible to this key) stay listed so they can be removed
+  const known = new Set(albums.map(a => a.id));
+  const rows = [...[...sel].filter(id => !known.has(id)).map(id => ({ id, name: 'Onbekend album', count: null, missing: true })), ...albums]
+    .filter(a => !q || a.name.toLowerCase().includes(q));
+  if (!rows.length) { $('albumList').innerHTML = `<div class="albmsg">${albums.length ? 'Geen album gevonden' : 'Geen albums in Immich'}</div>`; return; }
+  $('albumList').innerHTML = rows.map(a => `<label class="alb ${a.missing ? 'missing' : ''}">
+      <input type="checkbox" value="${esc(a.id)}" ${sel.has(a.id) ? 'checked' : ''}>
+      ${a.thumb ? `<img class="th" loading="lazy" alt="" src="api/thumb/${esc(a.thumb)}">` : '<span class="th"></span>'}
+      <span class="nm"><b>${esc(a.name)}</b><small>${a.missing ? esc(a.id) : `${a.count} foto's${a.shared ? ' · gedeeld' : ''}`}</small></span>
+    </label>`).join('');
+  $('albumList').querySelectorAll('input').forEach(cb => cb.onchange = () => {
+    const ids = new Set(selectedAlbums());
+    cb.checked ? ids.add(cb.value) : ids.delete(cb.value);
+    // keep the order of the album list
+    const order = [...ids].sort((x, y) => albums.findIndex(a => a.id === x) - albums.findIndex(a => a.id === y));
+    setSelectedAlbums(order);
+  });
+}
+$('albumSearch').addEventListener('input', renderAlbums);
+$('albumReload').onclick = loadAlbums;
+
 /* ---- form ---- */
 let fontsLoaded = false;
 function setupFonts(s) {
@@ -356,6 +423,7 @@ function fill(s) {
     else el.value = Array.isArray(v) ? v.join(', ') : v ?? '';
   }
   document.querySelectorAll('.fontsel').forEach(preview);
+  if (albums) renderAlbums(); else loadAlbums();
   $('keyHint').textContent = s.hasKey ? 'Er is een sleutel ingesteld. Laat leeg om hem te houden.' : 'Nog geen sleutel ingesteld.';
   document.querySelectorAll('#captionFields input').forEach(c => (c.checked = s.values.captionFields.includes(c.value)));
   $('calendars').innerHTML = '';
@@ -386,7 +454,7 @@ function collect() {
   return out;
 }
 function dirty() { msg('Niet opgeslagen wijzigingen', 'dirty'); }
-document.addEventListener('input', e => { if (e.target.closest('#app')) dirty(); });
+document.addEventListener('input', e => { if (e.target.closest('#app') && e.target.id !== 'albumSearch') dirty(); });
 
 async function save(reset) {
   document.querySelectorAll('.err').forEach(e => (e.textContent = ''));

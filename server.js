@@ -544,6 +544,32 @@ const server = http.createServer(async (req, res) => {
         const r = await saveSettings(await readBody(req));
         return json(res, r.errors ? 400 : 200, r.errors ? r : { ...r, ...adminView() });
       }
+      if (p === '/admin/api/albums' && req.method === 'GET') {
+        // own albums plus albums shared with this user; needs album.read on the API key
+        const get = async q => {
+          const r = await fetch(`${cfg.immichUrl}/api/albums${q}`, { headers: { 'x-api-key': cfg.immichKey } });
+          if (r.status === 401 || r.status === 403) throw Object.assign(new Error('De API-sleutel mist het recht album.read'), { code: 403 });
+          if (!r.ok) throw new Error(`Immich: HTTP ${r.status}`);
+          return r.json();
+        };
+        if (!cfg.immichUrl || !cfg.immichKey) return json(res, 400, { error: 'Vul eerst het Immich-adres en de API-sleutel in en sla op' });
+        try {
+          const [own, shared] = await Promise.all([get(''), get('?shared=true').catch(() => [])]);
+          const seen = new Map();
+          for (const a of [...own, ...shared]) if (!seen.has(a.id)) seen.set(a.id, {
+            id: a.id, name: a.albumName || '(zonder naam)', count: a.assetCount ?? 0,
+            thumb: a.albumThumbnailAssetId || null, shared: !!a.shared,
+          });
+          const albums = [...seen.values()].sort((x, y) => x.name.localeCompare(y.name, cfg.locale));
+          return json(res, 200, { albums });
+        } catch (e) { return json(res, e.code || 502, { error: e.message }); }
+      }
+      const th = p.match(/^\/admin\/api\/thumb\/([0-9a-f-]{36})$/);
+      if (th) {
+        const r = await immich(`/api/assets/${th[1]}/thumbnail?size=thumbnail`);
+        res.writeHead(200, { 'content-type': r.headers.get('content-type') || 'image/jpeg', 'cache-control': 'private, max-age=86400' });
+        return Readable.fromWeb(r.body).pipe(res);
+      }
       if (p === '/admin/api/test' && req.method === 'POST') {
         cache.delete('waste');
         const [photo, weatherR, cal, wasteR] = await Promise.allSettled([nextPhoto(), weather(), agenda(), waste()]);

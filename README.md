@@ -88,7 +88,7 @@ In Immich: **Account Settings → API Keys → New API Key**. Required permissio
 |---|---|
 | `asset.read` | picking photos, date and place |
 | `asset.view` | showing the image |
-| `album.read` | *optional*: album name in the caption |
+| `album.read` | *optional*: album picker on the admin page and album name in the caption |
 | `person.read` | *optional*: people in the caption |
 
 ## Configuration
@@ -100,7 +100,7 @@ Everything can be set on the admin page; settings saved there are stored in `dat
 | `ADMIN_PASSWORD` | – | Password for `/admin`. Without it the admin page is disabled |
 | `IMMICH_URL` | – | Address of your Immich server |
 | `IMMICH_API_KEY` | – | API key (see above) |
-| `IMMICH_ALBUM_IDS` | all | Comma-separated album IDs (from the album URL) |
+| `IMMICH_ALBUM_IDS` | all | Comma-separated album IDs. Easier: tick the albums on the admin page |
 | `IMMICH_FAVORITES_ONLY` | `false` | Only favourites |
 | `IMMICH_IMAGE_SIZE` | `preview` | `preview` (fast) or `fullsize` (sharper on 4K) |
 | `PHOTO_INTERVAL` | `45` | Seconds per photo |
