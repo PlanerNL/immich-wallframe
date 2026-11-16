@@ -227,6 +227,8 @@
       <div class="card">
         <h3>Weergave</h3>
         <div class="row"><label for="calendarDays">Dagen vooruit</label><div><input id="calendarDays" type="number" min="1" max="60"></div></div>
+        <div class="row"><label for="eventPopup">Details bij tikken</label><div><input id="eventPopup" type="checkbox"><div class="hint">Tik op een afspraak om tijd, plaats en beschrijving te zien, over het zijpaneel heen.</div></div></div>
+        <div class="row"><label for="eventPopupSecs">Details sluiten na (sec.)</label><div><input id="eventPopupSecs" type="number" min="3" max="120"></div></div>
         <div class="row"><label for="showEmptyDays">Lege dagen tonen</label><div><input id="showEmptyDays" type="checkbox"><div class="hint">Ook dagen zonder afspraken, met "Niets gepland".</div></div></div>
         <div class="row"><label for="calendarRefresh">Verversen (minuten)</label><div><input id="calendarRefresh" type="number" min="1" max="1440"></div></div>
       </div>
@@ -261,6 +263,11 @@
       <div class="card">
         <h3>Taal</h3>
         <div class="row"><label for="locale">Taal en datumnotatie</label><div><select id="locale"><option value="nl-NL">Nederlands</option><option value="nl-BE">Nederlands (België)</option><option value="en-GB">English (UK)</option><option value="en-US">English (US)</option><option value="de-DE">Deutsch</option></select></div></div>
+      </div>
+      <div class="card">
+        <h3>Zijpaneel</h3><p class="hint ctop">Zet onderdelen uit om de agenda meer ruimte te geven.</p>
+        <div class="row"><label for="showClock">Klok en datum</label><div><input id="showClock" type="checkbox"></div></div>
+        <div class="row"><label for="showWeather">Weer</label><div><input id="showWeather" type="checkbox"><div class="hint">Staat "Naast het weer tonen" bij Afval aan, dan blijft de eerstvolgende ophaling boven de agenda staan.</div></div></div>
       </div>
       <div class="card">
         <h3>Lettertypes</h3><p class="hint ctop">Kies per onderdeel een lettertype en een grootte (100% = oorspronkelijk, 50 tot 250%).</p>
@@ -318,7 +325,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SIMPLE = ['immichUrl', 'immichKey', 'albumIds', 'favoritesOnly', 'imageSize', 'photoInterval', 'progressBar', 'placeNamesOsm', 'calendarDays', 'calendarRefresh',
                 'wastePostcode', 'wasteHouseNumber', 'wasteHouseLetter', 'wasteShowNext', 'wasteBannerFrom', 'wasteInAgenda', 'lat', 'lon', 'nightStart', 'nightEnd', 'nightMode', 'wakeMinutes', 'locale',
-                'forecastDays', 'showEmptyDays', 'adminButton', 'sizeClock', 'sizeDate', 'sizeWeather', 'sizeForecast', 'sizeAgendaDays', 'sizeAgenda', 'sizeCaption', 'fontClock', 'fontDate', 'fontWeather', 'fontForecast', 'fontAgendaDays', 'fontAgenda', 'fontCaption'];
+                'forecastDays', 'showEmptyDays', 'adminButton', 'showClock', 'showWeather', 'eventPopup', 'eventPopupSecs', 'sizeClock', 'sizeDate', 'sizeWeather', 'sizeForecast', 'sizeAgendaDays', 'sizeAgenda', 'sizeCaption', 'fontClock', 'fontDate', 'fontWeather', 'fontForecast', 'fontAgendaDays', 'fontAgenda', 'fontCaption'];
 const SRC = { standaard: 'standaardwaarde', omgeving: 'uit de containerinstellingen', beheerpagina: 'ingesteld op deze pagina' };
 let state = null;
 

@@ -76,6 +76,10 @@ const FIELDS = {
   wakeMinutes:     { env: 'NIGHT_WAKE_MINUTES', type: 'int', min: 1, max: 120, def: 2 },
   forecastDays:    { env: 'FORECAST_DAYS', type: 'int', min: 1, max: 14, def: 5 },
   showEmptyDays:   { env: 'SHOW_EMPTY_DAYS', type: 'bool', def: false },
+  showClock:       { env: 'SHOW_CLOCK', type: 'bool', def: true },
+  showWeather:     { env: 'SHOW_WEATHER', type: 'bool', def: true },
+  eventPopup:      { env: 'EVENT_POPUP', type: 'bool', def: true },
+  eventPopupSecs:  { env: 'EVENT_POPUP_SECONDS', type: 'int', min: 3, max: 120, def: 10 },
   adminButton:     { env: 'ADMIN_BUTTON', type: 'bool', def: true },
   fontClock:       { env: 'FONT_CLOCK', type: 'font', def: '' },
   fontDate:        { env: 'FONT_DATE', type: 'font', def: '' },
@@ -414,7 +418,8 @@ function expand(ev, from, to) {
   const push = (start, end, src) => {
     if (src.status === 'CANCELLED') return;
     if (!(start < to && (end > from || +end === +start && start >= from))) return;
-    occ.push({ start, end, allDay, title: src.summary || ev.summary || '(geen titel)', location: src.location || '' });
+    occ.push({ start, end, allDay, title: src.summary || ev.summary || '(geen titel)', location: src.location || ev.location || '',
+               description: src.description || ev.description || '', url: src.url || ev.url || '' });
   };
   if (!ev.rrule) {
     const st = allDay ? dateOnly(ev.start) : ev.start;
@@ -432,6 +437,9 @@ function expand(ev, from, to) {
   return occ;
 }
 
+// node-ical gives plain strings, or { val, params } for values with parameters
+const icalText = v => String((v && typeof v === 'object' ? v.val : v) ?? '').trim();
+
 async function loadCalendar(cal, from, to) {
   const data = await ical.async.fromURL(cal.url);
   const out = [];
@@ -444,7 +452,9 @@ async function loadCalendar(cal, from, to) {
         calendar: cal.name,
         color: cal.color,
         title: String(o.title),
-        location: String(o.location || ''),
+        location: icalText(o.location),
+        description: icalText(o.description).slice(0, 2000),
+        url: /^https?:\/\//i.test(icalText(o.url)) ? icalText(o.url) : '',
         allDay: o.allDay,
         // all-day events as plain dates so the browser can't shift them across midnight
         start: o.allDay ? localKey(o.start) : o.start.toISOString(),
@@ -589,6 +599,7 @@ const server = http.createServer(async (req, res) => {
         locale: cfg.locale, photoInterval: cfg.photoInterval, progressBar: cfg.progressBar, calendarDays: cfg.calendarDays,
         nightStart: cfg.nightStart, nightEnd: cfg.nightEnd, nightMode: cfg.nightMode, wakeMinutes: cfg.wakeMinutes,
         forecastDays: cfg.forecastDays, showEmptyDays: cfg.showEmptyDays,
+        showClock: cfg.showClock, showWeather: cfg.showWeather, eventPopup: cfg.eventPopup, eventPopupSecs: cfg.eventPopupSecs,
         adminButton: cfg.adminButton && !!ADMIN_PASSWORD,
         sizes: Object.fromEntries(Object.entries(FONT_BLOCKS).map(([k, b]) => [b, cfg['size' + k.slice(4)] / 100])),
         fonts: Object.fromEntries(Object.entries(FONT_BLOCKS).filter(([k]) => cfg[k]).map(([k, b]) => [b, fontCss(cfg[k])])),

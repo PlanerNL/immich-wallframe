@@ -57,6 +57,7 @@
 
   /* ---- panel ---- */
   .panel {
+    position: relative;
     background: var(--panel); transition: background 3s ease;
     display: flex; flex-direction: column; gap: calc(var(--u) * 3.2);
     padding: calc(var(--u) * 4.5) calc(var(--u) * 4) calc(var(--u) * 3);
@@ -131,6 +132,43 @@
     .agenda { margin-top: 0; padding-top: 0; }
     .weather { border-bottom: 0; }
   }
+  /* optional parts of the side panel */
+  .panel.no-clock .head { display: none; }
+  .panel.no-weather .now, .panel.no-weather .days { display: none; }
+  .panel.no-weather .waste { border-left: 0; padding-left: 0; }
+  .panel.no-weather .weather:not(:has(.waste:not([hidden]))) { display: none; }
+  @media (orientation: portrait) {
+    .panel.no-clock.no-weather:not(:has(.waste:not([hidden]))) .side { grid-column: 1 / -1; }
+    .panel.no-clock .weather { grid-row: 1; }
+  }
+
+  /* appointment details, laid over the side panel */
+  .evd-back { position: absolute; inset: 0; z-index: 8; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .evd-back.on { opacity: 1; pointer-events: auto; }
+  .evd { position: absolute; z-index: 9; left: calc(var(--u) * 2.5); right: calc(var(--u) * 2.5); top: 50%;
+         max-height: calc(100% - var(--u) * 5); overflow: hidden; display: flex; flex-direction: column;
+         translate: 0 calc(-50% + var(--u) * 2); opacity: 0; pointer-events: none; transition: opacity .25s, translate .25s;
+         background: color-mix(in oklab, rgb(var(--tint)) 22%, #15181c); border: 1px solid var(--faint); border-radius: calc(var(--u) * 2);
+         box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 6) rgb(0 0 0 / .5); font-family: var(--f-agenda, var(--body)); }
+  .evd.on { opacity: 1; translate: 0 -50%; pointer-events: auto; }
+  .evd .bar { height: calc(var(--u) * .7); background: var(--c, var(--muted)); flex: none; }
+  .evd .timer { height: 2px; background: rgb(255 255 255 / .35); transform-origin: left; flex: none; }
+  .evd .in { padding: calc(var(--u) * 3) calc(var(--u) * 3.2) calc(var(--u) * 3.2); overflow-y: auto; min-height: 0; }
+  .evd .cal { display: flex; align-items: center; gap: calc(var(--u) * 1); color: var(--muted); font-size: calc(var(--u) * 1.8); }
+  .evd .cal i { width: calc(var(--u) * 1.2); height: calc(var(--u) * 1.2); border-radius: 50%; background: var(--c, var(--muted)); }
+  .evd .cal svg { width: calc(var(--u) * 2.4); height: calc(var(--u) * 2.4); }
+  .evd h2 { font-family: var(--f-agenda, var(--display)); font-weight: 600; font-size: calc(var(--u) * 3.6); line-height: 1.15; margin: calc(var(--u) * 1) 0 calc(var(--u) * 2.2); overflow-wrap: anywhere; }
+  .evd .row { display: grid; grid-template-columns: calc(var(--u) * 3) 1fr; gap: calc(var(--u) * 1.4); align-items: start;
+              font-size: calc(var(--u) * 2.1); line-height: 1.4; margin-top: calc(var(--u) * 1.3); }
+  .evd .row svg { width: calc(var(--u) * 2.6); height: calc(var(--u) * 2.6); color: var(--muted); fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; margin-top: .1em; }
+  .evd .row small { display: block; color: var(--muted); font-size: .88em; }
+  .evd .desc { white-space: pre-line; overflow-wrap: anywhere; color: rgb(244 243 239 / .85); }
+  .evd .close { position: absolute; top: calc(var(--u) * 1.8); right: calc(var(--u) * 1.8); width: calc(var(--u) * 5); height: calc(var(--u) * 5);
+                border: 0; border-radius: 50%; background: rgb(255 255 255 / .08); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .evd .close svg { width: 45%; height: 45%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .ev[data-i] { cursor: pointer; border-radius: calc(var(--u) * .6); }
+  .ev[data-i]:active { background: rgb(255 255 255 / .08); }
+
   /* invisible admin button: hold the top-right corner */
   .admin-hot { position: fixed; z-index: 20; top: 0; right: 0; width: calc(var(--u) * 11); height: calc(var(--u) * 11);
                -webkit-tap-highlight-color: transparent; touch-action: none; user-select: none; }
@@ -157,7 +195,7 @@
     <p class="notice" id="notice" hidden></p>
   </section>
 
-  <aside class="panel">
+  <aside class="panel" id="panel">
     <header class="head">
       <div class="clock" id="clock"></div>
       <p class="today" id="today"></p>
@@ -169,6 +207,12 @@
     <div class="side">
       <section class="agenda" id="agenda"></section>
     </div>
+    <div class="evd-back" id="evdBack"></div>
+    <div class="evd" id="evd" role="dialog" aria-modal="false" aria-labelledby="evdTitle" aria-hidden="true">
+      <div class="bar"></div><div class="timer" id="evdTimer"></div>
+      <button class="close" id="evdClose" type="button" aria-label="Sluiten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="in" id="evdBody"></div>
+    </div>
   </aside>
 </main>
 <div class="admin-hot" id="adminHot" hidden aria-hidden="true"></div>
@@ -176,10 +220,10 @@
 
 <script>
 const $ = id => document.getElementById(id);
-let cfg = { forecastDays: 5, showEmptyDays: false, adminButton: false, fonts: {}, fontUrl: '', progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
+let cfg = { showClock: true, showWeather: true, eventPopup: true, eventPopupSecs: 10, forecastDays: 5, showEmptyDays: false, adminButton: false, fonts: {}, fontUrl: '', progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
 const T = {
-  nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m' },
-  en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until' },
+  nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', days: 'dagen', hour: 'uur', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m', to: 'tot' },
+  en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', days: 'days', hour: 'h', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until', to: 'until' },
 };
 const t = k => (T[cfg.locale.slice(0, 2)] || T.en)[k];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -525,6 +569,7 @@ async function loadAgenda() {
 
     const tomorrow = new Date(start); tomorrow.setDate(tomorrow.getDate() + 1);
     let html = '';
+    agendaEvents = [];
     for (const [k, day] of byDay) {
       const isToday = k === dayKey(start);
       if (!day.items.length && !isToday && !cfg.showEmptyDays) continue;   // skip empty days to fit more
@@ -533,8 +578,9 @@ async function loadAgenda() {
       const sub = day.date.toLocaleDateString(cfg.locale, { day: 'numeric', month: 'short' }).replace('.', '');
       day.items.sort((a, b) => (b.allDay - a.allDay) || (a.continues ? -1 : 0) || (a.start < b.start ? -1 : 1));
       const items = day.items.length ? day.items.map(ev => {
+        const i = agendaEvents.push(ev) - 1;
         const time = ev.allDay || ev.continues ? '' : new Date(ev.start).toLocaleTimeString(cfg.locale, { hour: '2-digit', minute: '2-digit' });
-        return `<div class="ev ${ev.allDay && !ev.waste ? 'allday' : ''} ${ev.waste ? 'is-waste' : ''}" style="${ev.color ? `--c:${esc(ev.color)}` : ''}">
+        return `<div class="ev ${ev.allDay && !ev.waste ? 'allday' : ''} ${ev.waste ? 'is-waste' : ''}" ${cfg.eventPopup ? `data-i="${i}" role="button" tabindex="0"` : ''} style="${ev.color ? `--c:${esc(ev.color)}` : ''}">
           ${ev.waste
             ? `<span class="bin">${BIN(ev.color)}</span><time></time><span class="ti">${esc(ev.title)}</span>`
             : `<span class="dot"></span><time>${time}</time><span class="ti">${esc(ev.title)}</span>`}</div>`;
@@ -547,6 +593,81 @@ async function loadAgenda() {
     renderAgenda(`<p class="empty">${t('noCal')}</p>`);
   }
 }
+
+/* ---------- appointment details ---------- */
+let agendaEvents = [], evdTimer = null;
+const EVD_ICON = {
+  when: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  where: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  desc: '<path d="M5 6h14M5 10h14M5 14h10M5 18h7"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+};
+const evdRow = (k, html) => `<div class="row"><svg viewBox="0 0 24 24" aria-hidden="true">${EVD_ICON[k]}</svg><div>${html}</div></div>`;
+// iCal descriptions may contain HTML (Google) or escaped newlines; show them as plain text
+function plainText(s) {
+  const d = document.createElement('div');
+  d.innerHTML = String(s).replace(/\\n/g, '\n').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li)>/gi, '\n');
+  return (d.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function whenText(ev) {
+  const L = cfg.locale, cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const dateLong = d => cap(d.toLocaleDateString(L, { weekday: 'long', day: 'numeric', month: 'long' }));
+  const hm = d => d.toLocaleTimeString(L, { hour: '2-digit', minute: '2-digit' });
+  if (ev.allDay) {
+    const a = new Date(ev.start + 'T12:00'), b = new Date(ev.end + 'T12:00');
+    const days = Math.round((b - a) / 864e5) + 1;
+    return ev.start === ev.end ? [dateLong(a), t('allday')]
+      : [`${dateLong(a)} – ${dateLong(b)}`, `${days} ${t('days')}`];
+  }
+  const a = new Date(ev.start), b = new Date(ev.end);
+  const mins = Math.round((b - a) / 6e4);
+  const dur = mins >= 60 ? `${Math.floor(mins / 60)} ${t('hour')}${mins % 60 ? ` ${mins % 60} min` : ''}` : `${mins} min`;
+  return dayKey(a) === dayKey(b) || (b - a <= 864e5 && b.getHours() === 0 && b.getMinutes() === 0)
+    ? [dateLong(a), `${hm(a)} – ${hm(b)}${mins > 0 ? ` · ${dur}` : ''}`]
+    : [`${dateLong(a)} ${hm(a)}`, `${t('to')} ${dateLong(b)} ${hm(b)}`];
+}
+function openEvent(i) {
+  const ev = agendaEvents[i];
+  if (!ev) return;
+  const [w1, w2] = whenText(ev);
+  const desc = ev.description ? plainText(ev.description) : '';
+  let html = `<div class="cal">${ev.waste ? BIN(ev.color) : '<i></i>'}<span>${esc(ev.calendar || '')}</span></div>
+    <h2 id="evdTitle">${esc(ev.waste ? `${ev.title} ${t('curb')}` : ev.title)}</h2>`;
+  html += evdRow('when', `${esc(w1)}<small>${esc(w2)}</small>`);
+  if (ev.location) html += evdRow('where', esc(ev.location));
+  if (desc) html += evdRow('desc', `<div class="desc">${esc(desc)}</div>`);
+  if (ev.url) html += evdRow('link', `<span class="desc">${esc(ev.url)}</span>`);
+  const box = $('evd');
+  box.style.setProperty('--c', ev.color || '');
+  $('evdBody').innerHTML = html;
+  $('evdBody').scrollTop = 0;
+  box.classList.add('on'); $('evdBack').classList.add('on');
+  box.setAttribute('aria-hidden', 'false');
+  restartEventTimer();
+}
+function restartEventTimer() {
+  const secs = cfg.eventPopupSecs || 10, bar = $('evdTimer');
+  clearTimeout(evdTimer);
+  evdTimer = setTimeout(closeEvent, secs * 1000);
+  bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)';
+  void bar.offsetWidth;
+  bar.style.transition = `transform ${secs}s linear`; bar.style.transform = 'scaleX(0)';
+}
+function closeEvent() {
+  clearTimeout(evdTimer);
+  $('evd').classList.remove('on'); $('evdBack').classList.remove('on');
+  $('evd').setAttribute('aria-hidden', 'true');
+}
+// "click" is not fired after a scroll gesture, so scrolling the agenda never opens an event
+$('agenda').addEventListener('click', e => { const el = e.target.closest('.ev[data-i]'); if (el) openEvent(+el.dataset.i); });
+$('agenda').addEventListener('keydown', e => {
+  const el = e.target.closest('.ev[data-i]');
+  if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openEvent(+el.dataset.i); }
+});
+$('evdClose').onclick = closeEvent;
+$('evdBack').onclick = closeEvent;
+$('evdBody').addEventListener('scroll', restartEventTimer, { passive: true });   // reading a long description keeps it open
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEvent(); });
 
 /* ---------- fonts ---------- */
 function applyFonts() {
@@ -583,7 +704,9 @@ function setupAdminButton() {
   setupAdminButton();
   tick(); updateNight(); setInterval(() => { tick(); updateNight(); }, 5000);
   nextPhoto(true);
-  loadWeather(); setInterval(loadWeather, 15 * 60e3);
+  $('panel').classList.toggle('no-clock', cfg.showClock === false);
+  $('panel').classList.toggle('no-weather', cfg.showWeather === false);
+  if (cfg.showWeather !== false) { loadWeather(); setInterval(loadWeather, 15 * 60e3); }
   loadAgenda(); setInterval(loadAgenda, 60e3);
   loadWaste(); setInterval(loadWaste, 30 * 60e3); setInterval(renderWaste, 60e3);
   // reload when settings were changed on the admin page

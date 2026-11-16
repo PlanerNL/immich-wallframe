@@ -20,6 +20,8 @@ A wall-mounted photo frame for [Immich](https://immich.app), with a side panel f
 **Panel**
 - Large clock and date
 - Current weather plus a 5-day forecast with temperature range bars, chance of rain and expected mm ([Open-Meteo](https://open-meteo.com), no API key)
+- Tap an appointment for its details
+- Clock and weather can be switched off so the agenda gets the whole panel
 - Compact agenda from any number of iCal feeds (Google, FamilyWall, Outlook, …): one line per event, empty days skipped, scrollable, glides back to today after a minute
 - Waste pickups for **Twente Milieu** (Netherlands): the next pickup next to the weather, highlighted the evening before, and optionally in the agenda
 
@@ -110,8 +112,12 @@ Everything can be set on the admin page; settings saved there are stored in `dat
 | `CALENDARS` | – | `Name\|#colour\|url`, separated by `;`. `webcal://` is accepted |
 | `CALENDAR_DAYS` | `10` | Days ahead in the agenda |
 | `SHOW_EMPTY_DAYS` | `false` | Also show days without appointments ("Niets gepland") |
+| `EVENT_POPUP` | `true` | Tap an appointment to show its details (time, place, description) over the side panel |
+| `EVENT_POPUP_SECONDS` | `10` | Seconds before the details close again |
 | `CALENDAR_REFRESH` | `5` | Minutes between calendar refreshes |
 | `LATITUDE` / `LONGITUDE` | Amsterdam | Location for the weather |
+| `SHOW_CLOCK` | `true` | Show the clock and date. Off = more room for the agenda |
+| `SHOW_WEATHER` | `true` | Show current weather and forecast. Off = more room for the agenda |
 | `FORECAST_DAYS` | `5` | Number of forecast days (1–14) |
 | `LOCALE` | `nl-NL` | Language and date format (`nl-NL`, `nl-BE`, `en-GB`, `en-US`, `de-DE`) |
 | `WASTE_POSTCODE` / `WASTE_HOUSE_NUMBER` / `WASTE_HOUSE_LETTER` | – | Address for Twente Milieu pickups. Empty = off |
