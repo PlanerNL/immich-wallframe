@@ -4,6 +4,11 @@
   "description": "Photo frame for Immich with 5-day weather and a compact multi-day agenda",
   "type": "module",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "node-ical": "^0.20.1" }
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "esbuild": "^0.24.2",
+    "node-ical": "^0.20.1"
+  }
 }

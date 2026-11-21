@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, stat } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import ical from 'node-ical';
@@ -222,6 +222,25 @@ function adminView() {
   for (const key of Object.keys(FIELDS)) out[key] = FIELDS[key].type === 'secret' ? '' : cfg[key];
   return { values: out, hasKey: !!cfg.immichKey, source,
     fonts: Object.keys(FONTS).map(n => ({ name: n, css: fontCss(n) })), fontUrl: fontUrl(Object.keys(FONTS)), fields: Object.fromEntries(Object.entries(FIELDS).map(([k, f]) => [k, { env: f.env, type: f.type, options: f.options, min: f.min, max: f.max }])) };
+}
+
+// ---------- the frame page, with its script made readable for older TV browsers ----------
+// LG webOS, Samsung Tizen and old tablets run old Chromium versions that stop at syntax such as ?. and ??,
+// which would leave the whole page dead. esbuild rewrites the script once (cached per file change).
+let frameCache = { mtime: 0, html: '' };
+async function framePage() {
+  const file = new URL('./public/index.html', import.meta.url);
+  const { mtimeMs } = await stat(file);
+  if (frameCache.mtime === mtimeMs) return frameCache.html;
+  let html = await readFile(file, 'utf8');
+  try {
+    const { transform } = await import('esbuild');
+    const a = html.indexOf('<script>') + 8, b = html.indexOf('</script>', a);
+    const out = await transform(html.slice(a, b), { loader: 'js', target: 'chrome61', charset: 'utf8' });
+    html = html.slice(0, a) + out.code + html.slice(b);
+  } catch (e) { console.error('Script niet omgezet voor oudere browsers:', e.message); }
+  frameCache = { mtime: mtimeMs, html };
+  return html;
 }
 
 const cache = new Map();
@@ -521,7 +540,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (p === '/' || p === '/index.html') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' });
-      return res.end(await readFile(new URL('./public/index.html', import.meta.url)));
+      return res.end(await framePage());
     }
     if (p === '/icon.png' || p === '/favicon.ico') {
       res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'public, max-age=604800' });

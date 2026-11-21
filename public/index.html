@@ -14,7 +14,8 @@
     --ink: #f4f3ef;
     --muted: rgb(244 243 239 / .62);
     --faint: rgb(244 243 239 / .16);
-    --panel: color-mix(in oklab, rgb(var(--tint)) 38%, #121417);
+    --panel: #262c32;                       /* set from the photo colour by script */
+    --panel-deep: #1b1f24;
     --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
     --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
     --u: min(1vh, 0.56vw);                  /* one scale unit that follows the screen */
@@ -27,10 +28,10 @@
 
   /* ---- photo ---- */
   .stage { position: relative; overflow: hidden; }
-  .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 2.2s ease; }
+  .slide { position: absolute; top: 0; right: 0; bottom: 0; left: 0; opacity: 0; transition: opacity 2.2s ease; }
   .slide.on { opacity: 1; }
-  .slide .bg { position: absolute; inset: -8%; background-size: cover; background-position: center; filter: blur(40px) brightness(.55) saturate(1.2); }
-  .slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .slide .bg { position: absolute; top: -8%; right: -8%; bottom: -8%; left: -8%; background-size: cover; background-position: center; filter: blur(40px) brightness(.55) saturate(1.2); }
+  .slide img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
   .stage::after { content: ''; position: absolute; left: 0; bottom: 0; width: 60%; height: 40%; pointer-events: none;
                   background: radial-gradient(ellipse at 0 100%, rgb(0 0 0 / .55), transparent 70%); }
   .caption { font-family: var(--f-caption, var(--body)); position: absolute; z-index: 1; left: calc(var(--u) * 3.5 * var(--s-caption, 1)); bottom: calc(var(--u) * 3 * var(--s-caption, 1)); max-width: 55%;
@@ -43,7 +44,7 @@
   .progress { position: absolute; z-index: 2; left: 0; bottom: 0; height: calc(var(--u) * .45); width: 100%;
               transform-origin: left; transform: scaleX(0);
               background: rgb(var(--tint-light, 244 243 239) / .85); box-shadow: 0 0 8px rgb(0 0 0 / .4); }
-  .nav { position: absolute; z-index: 3; top: 50%; translate: 0 -50%; width: calc(var(--u) * 9); height: calc(var(--u) * 9);
+  .nav { position: absolute; z-index: 3; top: 50%; transform: translateY(-50%); width: calc(var(--u) * 9); height: calc(var(--u) * 9);
          border-radius: 50%; border: 0; background: rgb(0 0 0 / .35); color: var(--ink); cursor: pointer;
          display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity .4s ease, background .2s; touch-action: manipulation; }
   .nav svg { width: 46%; height: 46%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -53,7 +54,7 @@
   .nav:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; opacity: 1; pointer-events: auto; }
   .stage.controls .nav:disabled { opacity: .3; cursor: default; }
   @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  .notice { position: absolute; inset: 0; display: grid; place-items: center; padding: 10%; text-align: center; font-size: calc(var(--u) * 2.4); color: var(--muted); }
+  .notice { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; place-items: center; padding: 10%; text-align: center; font-size: calc(var(--u) * 2.4); color: var(--muted); }
 
   /* ---- panel ---- */
   .panel {
@@ -78,7 +79,7 @@
   .waste .bins svg + svg { margin-left: calc(var(--u) * -.9 * var(--s-weather, 1)); }
   .waste .wlabel { font-size: calc(var(--u) * 1.9 * var(--s-weather, 1)); color: var(--muted); line-height: 1.2; }
   .waste .wnames { font-family: var(--display); font-weight: 600; font-size: calc(var(--u) * 2.5 * var(--s-weather, 1)); line-height: 1.15; }
-  .waste.urgent .wlabel { color: color-mix(in oklab, var(--wc) 55%, white); font-weight: 600; }
+  .waste.urgent .wlabel { color: var(--wc-light, var(--wc)); font-weight: 600; }
   .now { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 2); }
   .now svg { width: calc(var(--u) * 7 * var(--s-weather, 1)); height: calc(var(--u) * 7 * var(--s-weather, 1)); }
   .now .t { font-family: var(--f-weather, var(--display)); font-weight: 600; font-size: calc(var(--u) * 6 * var(--s-weather, 1)); line-height: 1; }
@@ -103,9 +104,9 @@
   .weather { border-bottom: 1px solid var(--faint); padding-bottom: calc(var(--u) * 2.4); }
   .agenda::-webkit-scrollbar { display: none; }
   /* fade only the edges where there is more to scroll to */
-  .agenda.more-below { mask-image: linear-gradient(#000 85%, transparent); }
-  .agenda.more-above { mask-image: linear-gradient(transparent, #000 10%); }
-  .agenda.more-above.more-below { mask-image: linear-gradient(transparent, #000 10%, #000 85%, transparent); }
+  .agenda.more-below { -webkit-mask-image: linear-gradient(#000 85%, transparent); mask-image: linear-gradient(#000 85%, transparent); }
+  .agenda.more-above { -webkit-mask-image: linear-gradient(transparent, #000 10%); mask-image: linear-gradient(transparent, #000 10%); }
+  .agenda.more-above.more-below { -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 85%, transparent); mask-image: linear-gradient(transparent, #000 10%, #000 85%, transparent); }
   .day { display: grid; grid-template-columns: calc(var(--u) * 11 * var(--s-agendaDays, 1)) 1fr; gap: calc(var(--u) * 1.5 * var(--s-agendaDays, 1)); padding-bottom: calc(var(--u) * 1.6 * var(--s-agendaDays, 1)); }
   .day h3 { font-family: var(--f-agendaDays, var(--display)); font-weight: 600; font-size: calc(var(--u) * 2.1 * var(--s-agendaDays, 1)); line-height: 1.35; }
   .day h3 small { display: block; font-family: var(--f-agendaDays, var(--body)); font-weight: 400; color: var(--muted); font-size: .85em; }
@@ -114,7 +115,7 @@
   .ev .dot { width: calc(var(--u) * .9 * var(--s-agenda, 1)); height: calc(var(--u) * .9 * var(--s-agenda, 1)); border-radius: 50%; background: var(--c, var(--muted)); transform: translateY(-.1em); }
   /* waste: the bin sits centred on the dot column, the name lines up with the other titles */
   .ev .bin { position: relative; width: calc(var(--u) * .9 * var(--s-agenda, 1)); height: calc(var(--u) * .9 * var(--s-agenda, 1)); transform: translateY(-.1em); }
-  .ev .bin svg { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 2 * var(--s-agenda, 1)); height: calc(var(--u) * 2 * var(--s-agenda, 1)); translate: -50% -52%; }
+  .ev .bin svg { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 2 * var(--s-agenda, 1)); height: calc(var(--u) * 2 * var(--s-agenda, 1)); transform: translate(-50%, -52%); }
   .ev time { color: var(--muted); font-variant-numeric: tabular-nums; }
   .ev .ti { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ev.allday .ti { font-weight: 600; }
@@ -143,14 +144,14 @@
   }
 
   /* appointment details, laid over the side panel */
-  .evd-back { position: absolute; inset: 0; z-index: 8; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .evd-back { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 8; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .25s; }
   .evd-back.on { opacity: 1; pointer-events: auto; }
   .evd { position: absolute; z-index: 9; left: calc(var(--u) * 2.5); right: calc(var(--u) * 2.5); top: 50%;
          max-height: calc(100% - var(--u) * 5); overflow: hidden; display: flex; flex-direction: column;
-         translate: 0 calc(-50% + var(--u) * 2); opacity: 0; pointer-events: none; transition: opacity .25s, translate .25s;
-         background: color-mix(in oklab, rgb(var(--tint)) 22%, #15181c); border: 1px solid var(--faint); border-radius: calc(var(--u) * 2);
+         transform: translateY(calc(-50% + var(--u) * 2)); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+         background: var(--panel-deep); border: 1px solid var(--faint); border-radius: calc(var(--u) * 2);
          box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 6) rgb(0 0 0 / .5); font-family: var(--f-agenda, var(--body)); }
-  .evd.on { opacity: 1; translate: 0 -50%; pointer-events: auto; }
+  .evd.on { opacity: 1; transform: translateY(-50%); pointer-events: auto; }
   .evd .bar { height: calc(var(--u) * .7); background: var(--c, var(--muted)); flex: none; }
   .evd .timer { height: 2px; background: rgb(255 255 255 / .35); transform-origin: left; flex: none; }
   .evd .in { padding: calc(var(--u) * 3) calc(var(--u) * 3.2) calc(var(--u) * 3.2); overflow-y: auto; min-height: 0; }
@@ -172,14 +173,19 @@
   /* invisible admin button: hold the top-right corner */
   .admin-hot { position: fixed; z-index: 20; top: 0; right: 0; width: calc(var(--u) * 11); height: calc(var(--u) * 11);
                -webkit-tap-highlight-color: transparent; touch-action: none; user-select: none; }
-  .admin-hot::after { content: ''; position: absolute; top: 30%; right: 30%; width: 40%; aspect-ratio: 1; border-radius: 50%;
-                      border: 2px solid rgb(244 243 239 / .7); opacity: 0; scale: .3; }
-  .admin-hot.pressing::after { opacity: 1; scale: 1; transition: scale var(--hold, 2s) linear, opacity .3s; }
+  .admin-hot::after { content: ''; position: absolute; top: 30%; right: 30%; width: 40%; height: 40%; border-radius: 50%;
+                      border: 2px solid rgb(244 243 239 / .7); opacity: 0; transform: scale(.3); }
+  .admin-hot.pressing::after { opacity: 1; transform: scale(1); transition: transform var(--hold, 2s) linear, opacity .3s; }
   /* night mode */
-  .night { position: fixed; inset: 0; z-index: 10; background: #000; opacity: 0; pointer-events: none; transition: opacity 4s ease; }
+  .night { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 10; background: #000; opacity: 0; pointer-events: none; transition: opacity 4s ease; }
   .night.on { opacity: 1; pointer-events: auto; }
   .night .nclock { position: absolute; font-family: var(--display); font-weight: 300; font-size: calc(var(--u) * 11);
                    color: rgb(244 243 239 / .28); font-variant-numeric: tabular-nums; transform: translate(-50%, -50%); }
+  /* older browsers without flex "gap": margins instead */
+  .no-flexgap .panel > * + * { margin-top: calc(var(--u) * 3.2); }
+  .no-flexgap .toprow > * + *, .no-flexgap .waste .wtop > * + *, .no-flexgap .now > * + *,
+  .no-flexgap .caption .line > * + * { margin-left: .6em; }
+  .no-flexgap .waste > * + * { margin-top: calc(var(--u) * .6); }
   @media (prefers-reduced-motion: reduce) { .slide, .panel { transition: none; } }
 </style>
 </head>
@@ -220,10 +226,40 @@
 
 <script>
 const $ = id => document.getElementById(id);
+
+/* ---------- compatibility with older browsers (LG webOS, Samsung Tizen, old tablets) ---------- */
+// image.decode() is missing or unreliable in some TV browsers: fall back to the load event
+function decodeImage(img) {
+  const loaded = () => new Promise((ok, fail) => {
+    if (img.complete && img.naturalWidth) return ok();
+    img.onload = () => ok(); img.onerror = () => fail(new Error('afbeelding laadt niet'));
+  });
+  return img.decode ? img.decode().catch(loaded) : loaded();
+}
+// CSS min() needs Chromium 79+: compute the scale unit here instead
+function setUnit() {
+  const w = innerWidth / 100, h = innerHeight / 100, portrait = innerHeight > innerWidth;
+  const u = portrait ? Math.min(h * 0.62, w) : Math.min(h, w * 0.56);
+  document.documentElement.style.setProperty('--u', `${u.toFixed(3)}px`);
+}
+setUnit(); addEventListener('resize', setUnit);
+// flex "gap" needs Chromium 84+
+(() => {
+  const d = document.createElement('div');
+  d.style.cssText = 'display:flex;flex-direction:column;row-gap:1px;position:absolute';
+  d.appendChild(document.createElement('div')); d.appendChild(document.createElement('div'));
+  document.body.appendChild(d);
+  if (d.scrollHeight !== 1) document.documentElement.classList.add('no-flexgap');
+  d.remove();
+})();
+// colour mixing in script instead of CSS color-mix() (Chromium 111+)
+const mix = (a, b, f) => a.map((v, i) => Math.round(v * f + b[i] * (1 - f)));
+const rgbStr = c => `rgb(${c.join(',')})`;
+
 let cfg = { showClock: true, showWeather: true, eventPopup: true, eventPopupSecs: 10, forecastDays: 5, showEmptyDays: false, adminButton: false, fonts: {}, fontUrl: '', progressBar: true, locale: 'nl-NL', photoInterval: 45, calendarDays: 10, nightStart: '', nightEnd: '', nightMode: 'black', wakeMinutes: 2 };
 const T = {
-  nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', days: 'dagen', hour: 'uur', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m', to: 'tot' },
-  en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', days: 'days', hour: 'h', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until', to: 'until' },
+  nl: { today: 'Vandaag', tomorrow: 'Morgen', nothing: 'Niets gepland', and: 'en', curb: 'aan de straat', days: 'dagen', hour: 'uur', yearAgo: 'jaar geleden', yearsAgo: 'jaar geleden', allday: 'hele dag', feels: 'voelt als', wind: 'wind', noPhoto: "Kan geen foto's laden", noWeather: 'Weer niet beschikbaar', noCal: 'Agenda niet beschikbaar', until: 't/m', to: 'tot' },
+  en: { today: 'Today', tomorrow: 'Tomorrow', nothing: 'Nothing planned', and: 'and', curb: 'out for collection', days: 'days', hour: 'h', yearAgo: 'year ago', yearsAgo: 'years ago', allday: 'all day', feels: 'feels like', wind: 'wind', noPhoto: 'Cannot load photos', noWeather: 'Weather unavailable', noCal: 'Calendar unavailable', until: 'until', to: 'until' },
 };
 const t = k => (T[cfg.locale.slice(0, 2)] || T.en)[k];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -275,6 +311,10 @@ const CAP_ICON = {
 const capIcon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CAP_ICON[k]}</svg>`;
 
 function ago(date) {
+  if (!window.Intl || !Intl.RelativeTimeFormat) {           // older TV browsers
+    const y = Math.round((Date.now() - date) / 864e5 / 365.25);
+    return y >= 1 ? `${y} ${y === 1 ? t('yearAgo') : t('yearsAgo')}` : '';
+  }
   const rtf = new Intl.RelativeTimeFormat(cfg.locale, { numeric: 'auto' });
   const days = Math.round((Date.now() - date) / 864e5);
   if (days < 1) return rtf.format(0, 'day');
@@ -323,6 +363,9 @@ function tintFrom(img) {
   root.setProperty('--tint', `${r | 0} ${g | 0} ${b | 0}`);
   const lift = v => Math.round(v + (255 - v) * 0.55);  // lighter version for accents
   root.setProperty('--tint-light', `${lift(r)} ${lift(g)} ${lift(b)}`);
+  const tint = [r, g, b];
+  root.setProperty('--panel', rgbStr(mix(tint, [18, 20, 23], 0.38)));
+  root.setProperty('--panel-deep', rgbStr(mix(tint, [21, 24, 28], 0.22)));
 }
 
 // The next photo is fetched a few seconds early and swapped in exactly when the progress bar is full.
@@ -347,7 +390,7 @@ const MAX_HISTORY = 50;
 async function loadImg(p) {
   const img = new Image();
   img.src = `api/photo/${p.id}/image`;
-  await img.decode();
+  await decodeImage(img);
   return img;
 }
 
@@ -438,7 +481,7 @@ function tempColor(v) {
     const [t1, c1] = TEMP_STOPS[i], [t0, c0] = TEMP_STOPS[i - 1];
     if (v <= t1) { const f = (v - t0) / (t1 - t0); return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * f))})`; }
   }
-  return `rgb(${TEMP_STOPS.at(-1)[1]})`;
+  return `rgb(${TEMP_STOPS[TEMP_STOPS.length - 1][1]})`;
 }
 
 const ICON = {
@@ -512,8 +555,11 @@ function renderWaste() {
   const when = first === today ? t('today') : first === tomorrow ? t('tomorrow')
     : new Date(first + 'T12:00').toLocaleDateString(cfg.locale, { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '');
   const names = [...new Set(items.map(p => p.label))];
-  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${t('and')} ${names.at(-1)}` : names[0];
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${t('and')} ${names[names.length - 1]}` : names[0];
   el.style.setProperty('--wc', items[0].color);
+  const hex = (items[0].color || '#8e979f').replace('#', '');
+  const wc = [0, 2, 4].map(i => parseInt(hex.length === 3 ? hex[i / 2] + hex[i / 2] : hex.slice(i, i + 2), 16));
+  el.style.setProperty('--wc-light', rgbStr(mix(wc, [255, 255, 255], 0.55)));
   el.classList.toggle('urgent', urgent);
   const label = when.charAt(0).toUpperCase() + when.slice(1);
   el.innerHTML = `<div class="wtop"><span class="bins">${items.map(p => BIN(p.color)).join('')}</span><span class="wlabel">${esc(label)}</span></div>

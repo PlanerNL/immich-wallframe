@@ -144,6 +144,8 @@ Download the APK from the [Releases](../../releases) page, or from the latest **
 
 ## Troubleshooting
 
+- **Smart-TV browsers** (LG webOS, Samsung Tizen) run older browser engines. The server rewrites the frame's script for them automatically; it should work from Chromium 68 (LG webOS 5, 2020) onwards. On TVs older than that, use a streaming stick or a cheap Android tablet instead.
+
 - `docker logs immich-wallframe` shows errors from Immich, calendars and weather
 - The admin page has a **Test** button that checks Immich, the weather, each calendar and Twente Milieu
 - These endpoints return raw data: `/api/photo/next`, `/api/weather`, `/api/calendar`, `/api/waste`
